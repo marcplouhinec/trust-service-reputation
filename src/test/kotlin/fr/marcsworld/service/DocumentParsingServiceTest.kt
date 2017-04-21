@@ -2,6 +2,7 @@ package fr.marcsworld.service
 
 import fr.marcsworld.enums.AgencyType
 import fr.marcsworld.enums.DocumentType
+import fr.marcsworld.model.Agency
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -131,4 +132,16 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(0, firstGrandChildAgency.childAgencies.size)
     }
 
+    @Test
+    fun testParseTspServiceDefinition() {
+        val tspServiceDefinitionResource = ClassPathResource("pc-certimetiersartisanat_v1.3_en.pdf")
+        val testAgency = Agency(type = AgencyType.TRUST_SERVICE)
+        val documents = documentParsingService.parseTspServiceDefinition(tspServiceDefinitionResource, testAgency)
+
+        Assert.assertEquals(1, documents.size)
+        Assert.assertEquals("http://lcr.certimetiersartisanat.fr/reference/certimetiersartisanat.crl", documents[0].url)
+        Assert.assertEquals(DocumentType.CERTIFICATE_REVOCATION_LIST, documents[0].type)
+        Assert.assertEquals("en", documents[0].languageCode)
+        Assert.assertEquals(testAgency, documents[0].providerAgency)
+    }
 }

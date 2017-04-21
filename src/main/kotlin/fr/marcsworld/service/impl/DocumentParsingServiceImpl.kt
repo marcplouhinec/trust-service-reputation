@@ -6,6 +6,11 @@ import fr.marcsworld.model.Agency
 import fr.marcsworld.model.AgencyName
 import fr.marcsworld.model.Document
 import fr.marcsworld.service.DocumentParsingService
+import org.apache.pdfbox.io.RandomAccessBuffer
+import org.apache.pdfbox.io.RandomAccessInputStream
+import org.apache.pdfbox.pdfparser.PDFParser
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.text.PDFTextStripper
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
@@ -120,8 +125,43 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         return topAgency
     }
 
-    override fun parseTspServiceDefinition(resource: Resource): List<Document> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun parseTspServiceDefinition(resource: Resource, providerAgency: Agency): List<Document> {
+        val singleLinePdfText = resource.inputStream.use {
+            val pdfParser = PDFParser(RandomAccessBuffer(it))
+            pdfParser.parse()
+
+            var singleLinePdfText: String = ""
+            var pdDocument : PDDocument? = null
+            try {
+                pdDocument = PDDocument(pdfParser.document)
+                val pdfText: String? = PDFTextStripper().getText(pdDocument)
+                if (pdfText is String) {
+                    singleLinePdfText = pdfText.replace("\n", "").toLowerCase()
+                }
+            } finally {
+                pdfParser.document.close()
+                pdDocument?.close()
+            }
+
+            singleLinePdfText
+        }
+
+        val crlRegex = """http[^\s]{1,2000}\.crl""".toRegex()
+        val matchResults = crlRegex.findAll(singleLinePdfText)
+        val documentUrls = matchResults
+                .map { it.value }
+                .distinct()
+
+        return documentUrls
+                .map {
+                    Document(
+                            url = it,
+                            type = DocumentType.CERTIFICATE_REVOCATION_LIST,
+                            languageCode = "en",
+                            providerAgency = providerAgency
+                    )
+                }
+                .toList()
     }
 
     private fun evalXPathToString(node: Node, expression: String): String? {
@@ -141,7 +181,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         val xPathExpression = xPath.compile(expression)
         val nodeSet = xPathExpression.evaluate(node, XPathConstants.NODESET)
         return when (nodeSet) {
-            is NodeList -> (0..nodeSet.length-1).map { nodeSet.item(it) }
+            is NodeList -> (0..nodeSet.length - 1).map { nodeSet.item(it) }
             else -> listOf()
         }
     }

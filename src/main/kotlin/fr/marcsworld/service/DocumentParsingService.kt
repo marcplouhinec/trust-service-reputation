@@ -22,9 +22,10 @@ interface DocumentParsingService {
     /**
      * Parse the content of a document of the type [fr.marcsworld.enums.DocumentType.TSP_SERVICE_DEFINITION_PDF].
      *
-     * @param url Document resource.
+     * @param resource Document resource.
+     * @param providerAgency Trust Service [Agency] that provides this resource.
      * @return List of document of type [fr.marcsworld.enums.DocumentType.CERTIFICATE_REVOCATION_LIST].
      */
-    fun parseTspServiceDefinition(resource: Resource): List<Document>
+    fun parseTspServiceDefinition(resource: Resource, providerAgency: Agency): List<Document>
 
 }
