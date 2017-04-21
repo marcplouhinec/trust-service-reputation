@@ -7,10 +7,10 @@ import fr.marcsworld.model.AgencyName
 import fr.marcsworld.model.Document
 import fr.marcsworld.service.DocumentParsingService
 import org.slf4j.LoggerFactory
+import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
-import java.net.URL
 import javax.xml.XMLConstants
 import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilderFactory
@@ -31,41 +31,37 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
     private val namespaceContext = TsStatusListNamespaceContext()
 
-    override fun parseTsStatusList(url: String): Agency {
-        LOGGER.info("Parse the trust service status list: {}", url)
+    override fun parseTsStatusList(resource: Resource): Agency {
+        val resourceUrl = resource.url.toString()
+        LOGGER.info("Parse the trust service status list: {}", resourceUrl)
 
         // Parse the XML file in memory
         val documentBuilderFactory = DocumentBuilderFactory.newInstance()
         documentBuilderFactory.isNamespaceAware = true
         val documentBuilder = documentBuilderFactory.newDocumentBuilder()
-        val document = URL(url).openStream().buffered().use {
+        val document = resource.inputStream.buffered().use {
             documentBuilder.parse(it)
         }
 
         // Parse the TRUST_SERVICE_LIST_OPERATOR agency
-        val territoryCode = evalXPathToString(
-                document, "/v2:TrustServiceStatusList/v2:SchemeInformation/v2:SchemeTerritory/text()")
+        val topTerritoryCode = evalXPathToString(document, "/v2:TrustServiceStatusList/v2:SchemeInformation/v2:SchemeTerritory/text()")
         val topAgency = Agency(
                 type = AgencyType.TRUST_SERVICE_LIST_OPERATOR,
-                territoryCode = territoryCode ?: "UNKNOWN")
-        topAgency.names = evalXPathToAgencyNames(
-                document, "/v2:TrustServiceStatusList/v2:SchemeInformation/v2:SchemeOperatorName/v2:Name", topAgency)
+                territoryCode = topTerritoryCode ?: throw IllegalArgumentException("Missing SchemeTerritory."))
+        topAgency.names = evalXPathToAgencyNames(document, "/v2:TrustServiceStatusList/v2:SchemeInformation/v2:SchemeOperatorName/v2:Name", topAgency)
 
         // Parse the children TRUST_SERVICE_LIST_OPERATOR agencies
-        val tslPointerNodes = evalXPathToNodes(
-                document, "/v2:TrustServiceStatusList/v2:SchemeInformation/v2:PointersToOtherTSL/v2:OtherTSLPointer" +
+        val tslPointerNodes = evalXPathToNodes(document, "/v2:TrustServiceStatusList/v2:SchemeInformation/v2:PointersToOtherTSL/v2:OtherTSLPointer" +
                 "[v2:AdditionalInformation/v2:OtherInformation/additionaltypes:MimeType=\"application/vnd.etsi.tsl+xml\"]")
-        topAgency.childAgencies = tslPointerNodes
+        val otherTsloAgencies = tslPointerNodes
                 .map {
-                    val childTerritoryCode = evalXPathToString(
-                            it, "./v2:AdditionalInformation/v2:OtherInformation/v2:SchemeTerritory/text()")
+                    val childTerritoryCode = evalXPathToString(it, "./v2:AdditionalInformation/v2:OtherInformation/v2:SchemeTerritory/text()")
                     val agency = Agency(
                             parentAgency = topAgency,
                             type = AgencyType.TRUST_SERVICE_LIST_OPERATOR,
-                            territoryCode = childTerritoryCode ?: "UNKNOWN",
-                            referencingDocumentUrl = url)
-                    agency.names = evalXPathToAgencyNames(
-                            it, "./v2:AdditionalInformation/v2:OtherInformation/v2:SchemeOperatorName/v2:Name", agency)
+                            territoryCode = childTerritoryCode ?: throw IllegalArgumentException("Missing SchemeTerritory."),
+                            referencedByDocumentUrl = resourceUrl)
+                    agency.names = evalXPathToAgencyNames(it, "./v2:AdditionalInformation/v2:OtherInformation/v2:SchemeOperatorName/v2:Name", agency)
                     val tslLocation = evalXPathToString(it, "./v2:TSLLocation/text()")
                     if (tslLocation is String) {
                         agency.providingDocuments = listOf(Document(
@@ -77,16 +73,20 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
                     agency
                 }
-                .filter { it.providingDocuments.any { it.url == url } }
+        val childrenTsloAgencies = otherTsloAgencies.filter { it.territoryCode != topTerritoryCode }
+        val otherTopAgency = otherTsloAgencies.findLast { it.territoryCode == topTerritoryCode }
+        topAgency.providingDocuments = when (otherTopAgency) {
+            is Agency -> otherTopAgency.providingDocuments.map { Document(url = it.url, type = it.type, languageCode = it.languageCode, providerAgency = topAgency) }
+            else -> listOf()
+        }
 
         // Parse the TRUST_SERVICE_PROVIDER agencies
-        val tspNodes = evalXPathToNodes(
-                document, "/v2:TrustServiceStatusList/v2:TrustServiceProviderList/v2:TrustServiceProvider")
-        topAgency.childAgencies = tspNodes.map {
+        val tspNodes = evalXPathToNodes(document, "/v2:TrustServiceStatusList/v2:TrustServiceProviderList/v2:TrustServiceProvider")
+        val childrenTspAgencies = tspNodes.map {
             val tspAgency = Agency(
                     parentAgency = topAgency,
                     type = AgencyType.TRUST_SERVICE_PROVIDER,
-                    referencingDocumentUrl = url)
+                    referencedByDocumentUrl = resourceUrl)
             tspAgency.names = evalXPathToAgencyNames(it, "./v2:TSPInformation/v2:TSPTradeName/v2:Name", tspAgency)
 
             // Parse the children TRUST_SERVICE agencies
@@ -95,7 +95,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                 val tsAgency = Agency(
                         parentAgency = tspAgency,
                         type = AgencyType.TRUST_SERVICE,
-                        referencingDocumentUrl = url
+                        referencedByDocumentUrl = resourceUrl
                 )
                 tsAgency.names = evalXPathToAgencyNames(it, "./v2:ServiceInformation/v2:ServiceName/v2:Name", tsAgency)
 
@@ -104,7 +104,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                     Document(
                             url = it.textContent,
                             type = DocumentType.TSP_SERVICE_DEFINITION_PDF,
-                            languageCode = evalXPathToString(it, "./@xml:lang") ?: "UNKNOWN",
+                            languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
                             providerAgency = tsAgency)
                 }
 
@@ -114,10 +114,12 @@ class DocumentParsingServiceImpl : DocumentParsingService {
             tspAgency
         }
 
+        topAgency.childAgencies = childrenTsloAgencies + childrenTspAgencies
+
         return topAgency
     }
 
-    override fun parseTspServiceDefinition(url: String): List<Document> {
+    override fun parseTspServiceDefinition(resource: Resource): List<Document> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -138,7 +140,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         val xPathExpression = xPath.compile(expression)
         val nodeSet = xPathExpression.evaluate(node, XPathConstants.NODESET)
         return when (nodeSet) {
-            is NodeList -> (0..nodeSet.length).map { nodeSet.item(it) }
+            is NodeList -> (0..nodeSet.length-1).map { nodeSet.item(it) }
             else -> listOf()
         }
     }
@@ -148,11 +150,14 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         return nameNodes.map {
             AgencyName(
                     agency = agency,
-                    languageCode = evalXPathToString(it, "./@xml:lang") ?: "UNKNOWN",
-                    name = it.textContent ?: "UNKNOWN")
+                    languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
+                    name = it.textContent ?: throw IllegalArgumentException("Missing Name text."))
         }
     }
 
+    /**
+     * [NamespaceContext] compatible with documents of the type [DocumentType.TS_STATUS_LIST_XML].
+     */
     private class TsStatusListNamespaceContext : NamespaceContext {
         override fun getNamespaceURI(prefix: String?): String {
             return when (prefix) {

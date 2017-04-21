@@ -23,8 +23,8 @@ class Agency (
         @Column(name = "AGENCY_TYPE", nullable = false, length = 32)
         var type: AgencyType,
 
-        @Column(name = "REFERENCING_DOCUMENT_URL", nullable = true)
-        var referencingDocumentUrl: String? = null,
+        @Column(name = "REFERENCED_BY_DOCUMENT_URL", nullable = true)
+        var referencedByDocumentUrl: String? = null,
 
         @Column(name = "TERRITORY_CODE", nullable = true, length = 20)
         var territoryCode: String? = null,
