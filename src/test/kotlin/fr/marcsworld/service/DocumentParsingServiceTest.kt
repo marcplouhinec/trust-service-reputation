@@ -27,6 +27,7 @@ class DocumentParsingServiceTest {
         val tsStatusListEuResource = ClassPathResource("ts_status_list_eu.xml")
         val topAgency = documentParsingService.parseTsStatusList(tsStatusListEuResource)
 
+        // Check the top agency
         Assert.assertNull(topAgency.id)
         Assert.assertNull(topAgency.parentAgency)
         Assert.assertEquals(AgencyType.TRUST_SERVICE_LIST_OPERATOR, topAgency.type)
@@ -45,6 +46,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("en", topAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(topAgency, topAgency.providingDocuments[0].providerAgency)
 
+        // Check the first child agency
         Assert.assertEquals(31, topAgency.childAgencies.size)
         val firstChildAgency = topAgency.childAgencies[0]
         Assert.assertNull(firstChildAgency.id)
@@ -70,7 +72,63 @@ class DocumentParsingServiceTest {
 
     @Test
     fun testParseTsStatusListFromMemberState() {
-        // TODO
+        val tsStatusListFrResource = ClassPathResource("ts_status_list_fr.xml")
+        val topAgency = documentParsingService.parseTsStatusList(tsStatusListFrResource)
+
+        // Check the top agency
+        Assert.assertNull(topAgency.id)
+        Assert.assertNull(topAgency.parentAgency)
+        Assert.assertEquals(AgencyType.TRUST_SERVICE_LIST_OPERATOR, topAgency.type)
+        Assert.assertNull(topAgency.referencedByDocumentUrl)
+        Assert.assertEquals("FR", topAgency.territoryCode)
+
+        Assert.assertEquals(2, topAgency.names.size)
+        Assert.assertNull(topAgency.names[0].id)
+        Assert.assertEquals(topAgency, topAgency.names[0].agency)
+        Assert.assertEquals("en", topAgency.names[0].languageCode)
+        Assert.assertEquals("French Network Information Security Agency", topAgency.names[0].name)
+
+        Assert.assertEquals(0, topAgency.providingDocuments.size)
+
+        // Check the first child agency
+        Assert.assertEquals(22, topAgency.childAgencies.size)
+        val firstChildAgency = topAgency.childAgencies[0]
+        Assert.assertNull(firstChildAgency.id)
+        Assert.assertEquals(topAgency, firstChildAgency.parentAgency)
+        Assert.assertEquals(AgencyType.TRUST_SERVICE_PROVIDER, firstChildAgency.type)
+        Assert.assertEquals(tsStatusListFrResource.url.toString(), firstChildAgency.referencedByDocumentUrl)
+        Assert.assertNull(firstChildAgency.territoryCode)
+
+        Assert.assertEquals(2, firstChildAgency.names.size)
+        Assert.assertNull(firstChildAgency.names[0].id)
+        Assert.assertEquals(firstChildAgency, firstChildAgency.names[0].agency)
+        Assert.assertEquals("en", firstChildAgency.names[0].languageCode)
+        Assert.assertEquals("Agence Nationale des Titres Sécurisés", firstChildAgency.names[0].name)
+
+        Assert.assertEquals(0, firstChildAgency.providingDocuments.size)
+
+        // Check the first grand child agency
+        Assert.assertEquals(8, firstChildAgency.childAgencies.size)
+        val firstGrandChildAgency = firstChildAgency.childAgencies[0]
+        Assert.assertNull(firstGrandChildAgency.id)
+        Assert.assertEquals(firstChildAgency, firstGrandChildAgency.parentAgency)
+        Assert.assertEquals(AgencyType.TRUST_SERVICE, firstGrandChildAgency.type)
+        Assert.assertEquals(tsStatusListFrResource.url.toString(), firstGrandChildAgency.referencedByDocumentUrl)
+        Assert.assertNull(firstGrandChildAgency.territoryCode)
+
+        Assert.assertEquals(2, firstGrandChildAgency.names.size)
+        Assert.assertNull(firstGrandChildAgency.names[0].id)
+        Assert.assertEquals(firstGrandChildAgency, firstGrandChildAgency.names[0].agency)
+        Assert.assertEquals("en", firstGrandChildAgency.names[0].languageCode)
+        Assert.assertEquals("Acteur de l'Administration d'Etat - Authentification 3 étoiles", firstGrandChildAgency.names[0].name)
+
+        Assert.assertEquals(2, firstGrandChildAgency.providingDocuments.size)
+        Assert.assertEquals("http://sp.ants.gouv.fr/antsv2/ANTS_AC_AAE_PC_v1.9.pdf", firstGrandChildAgency.providingDocuments[0].url)
+        Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION_PDF, firstGrandChildAgency.providingDocuments[0].type)
+        Assert.assertEquals("fr", firstGrandChildAgency.providingDocuments[0].languageCode)
+        Assert.assertEquals(firstGrandChildAgency, firstGrandChildAgency.providingDocuments[0].providerAgency)
+
+        Assert.assertEquals(0, firstGrandChildAgency.childAgencies.size)
     }
 
 }

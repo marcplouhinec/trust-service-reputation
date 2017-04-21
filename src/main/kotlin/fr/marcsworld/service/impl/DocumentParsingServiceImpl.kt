@@ -73,11 +73,12 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
                     agency
                 }
-        val childrenTsloAgencies = otherTsloAgencies.filter { it.territoryCode != topTerritoryCode }
-        val otherTopAgency = otherTsloAgencies.findLast { it.territoryCode == topTerritoryCode }
-        topAgency.providingDocuments = when (otherTopAgency) {
-            is Agency -> otherTopAgency.providingDocuments.map { Document(url = it.url, type = it.type, languageCode = it.languageCode, providerAgency = topAgency) }
-            else -> listOf()
+        val memberStateTsloAgencies = otherTsloAgencies.filter { it.territoryCode != "EU" }
+        if (topTerritoryCode == "EU") {
+            val euTsloAgency = otherTsloAgencies.findLast { it.territoryCode == "EU" }
+            if (euTsloAgency is Agency) {
+                topAgency.providingDocuments = euTsloAgency.providingDocuments.map { Document(url = it.url, type = it.type, languageCode = it.languageCode, providerAgency = topAgency) }
+            }
         }
 
         // Parse the TRUST_SERVICE_PROVIDER agencies
@@ -87,7 +88,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                     parentAgency = topAgency,
                     type = AgencyType.TRUST_SERVICE_PROVIDER,
                     referencedByDocumentUrl = resourceUrl)
-            tspAgency.names = evalXPathToAgencyNames(it, "./v2:TSPInformation/v2:TSPTradeName/v2:Name", tspAgency)
+            tspAgency.names = evalXPathToAgencyNames(it, "./v2:TSPInformation/v2:TSPName/v2:Name", tspAgency)
 
             // Parse the children TRUST_SERVICE agencies
             val tspServiceNode = evalXPathToNodes(it, "./v2:TSPServices/v2:TSPService")
@@ -114,7 +115,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
             tspAgency
         }
 
-        topAgency.childAgencies = childrenTsloAgencies + childrenTspAgencies
+        topAgency.childAgencies = memberStateTsloAgencies + childrenTspAgencies
 
         return topAgency
     }
