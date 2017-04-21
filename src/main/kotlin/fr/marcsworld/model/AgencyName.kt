@@ -12,7 +12,7 @@ import javax.persistence.*
 class AgencyName (
         @Id @GeneratedValue(strategy = GenerationType.AUTO)
         @Column(name = "AGENCY_NAME_ID", nullable = false)
-        var id: Long,
+        var id: Long? = null,
 
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "AGENCY_ID", nullable = false)
