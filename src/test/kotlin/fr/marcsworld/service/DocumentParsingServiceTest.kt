@@ -45,7 +45,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml", topAgency.providingDocuments[0].url)
         Assert.assertEquals(DocumentType.TS_STATUS_LIST_XML, topAgency.providingDocuments[0].type)
         Assert.assertEquals("en", topAgency.providingDocuments[0].languageCode)
-        Assert.assertEquals(topAgency, topAgency.providingDocuments[0].providerAgency)
+        Assert.assertEquals(topAgency, topAgency.providingDocuments[0].providedByAgency)
 
         // Check the first child agency
         Assert.assertEquals(31, topAgency.childAgencies.size)
@@ -66,7 +66,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("https://www.signatur.rtr.at/currenttl.xml", firstChildAgency.providingDocuments[0].url)
         Assert.assertEquals(DocumentType.TS_STATUS_LIST_XML, firstChildAgency.providingDocuments[0].type)
         Assert.assertEquals("en", firstChildAgency.providingDocuments[0].languageCode)
-        Assert.assertEquals(firstChildAgency, firstChildAgency.providingDocuments[0].providerAgency)
+        Assert.assertEquals(firstChildAgency, firstChildAgency.providingDocuments[0].providedByAgency)
 
         Assert.assertEquals(0, firstChildAgency.childAgencies.size)
     }
@@ -127,7 +127,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("http://sp.ants.gouv.fr/antsv2/ANTS_AC_AAE_PC_v1.9.pdf", firstGrandChildAgency.providingDocuments[0].url)
         Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION_PDF, firstGrandChildAgency.providingDocuments[0].type)
         Assert.assertEquals("fr", firstGrandChildAgency.providingDocuments[0].languageCode)
-        Assert.assertEquals(firstGrandChildAgency, firstGrandChildAgency.providingDocuments[0].providerAgency)
+        Assert.assertEquals(firstGrandChildAgency, firstGrandChildAgency.providingDocuments[0].providedByAgency)
 
         Assert.assertEquals(0, firstGrandChildAgency.childAgencies.size)
     }
@@ -142,6 +142,6 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("http://lcr.certimetiersartisanat.fr/reference/certimetiersartisanat.crl", documents[0].url)
         Assert.assertEquals(DocumentType.CERTIFICATE_REVOCATION_LIST, documents[0].type)
         Assert.assertEquals("en", documents[0].languageCode)
-        Assert.assertEquals(testAgency, documents[0].providerAgency)
+        Assert.assertEquals(testAgency, documents[0].providedByAgency)
     }
 }

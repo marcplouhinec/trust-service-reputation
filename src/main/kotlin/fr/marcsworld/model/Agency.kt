@@ -26,13 +26,16 @@ class Agency (
         @Column(name = "REFERENCED_BY_DOCUMENT_URL", nullable = true)
         var referencedByDocumentUrl: String? = null,
 
+        @Column(name = "IS_STILL_REFERENCED_BY_DOCUMENT", nullable = true)
+        var isStillReferencedByDocument: Boolean? = true,
+
         @Column(name = "TERRITORY_CODE", nullable = true, length = 20)
         var territoryCode: String? = null,
 
         @OneToMany(mappedBy = "agency", fetch = FetchType.EAGER)
         var names: List<AgencyName> = listOf(),
 
-        @OneToMany(mappedBy = "providerAgency", fetch = FetchType.LAZY)
+        @OneToMany(mappedBy = "providedByAgency", fetch = FetchType.LAZY)
         var providingDocuments: List<Document> = listOf(),
 
         @OneToMany(mappedBy = "parentAgency", fetch = FetchType.LAZY)

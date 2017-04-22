@@ -7,7 +7,6 @@ import fr.marcsworld.model.AgencyName
 import fr.marcsworld.model.Document
 import fr.marcsworld.service.DocumentParsingService
 import org.apache.pdfbox.io.RandomAccessBuffer
-import org.apache.pdfbox.io.RandomAccessInputStream
 import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
@@ -73,7 +72,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                                 url = tslLocation,
                                 type = DocumentType.TS_STATUS_LIST_XML,
                                 languageCode = "en",
-                                providerAgency = agency))
+                                providedByAgency = agency))
                     }
 
                     agency
@@ -82,7 +81,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         if (topTerritoryCode == "EU") {
             val euTsloAgency = otherTsloAgencies.findLast { it.territoryCode == "EU" }
             if (euTsloAgency is Agency) {
-                topAgency.providingDocuments = euTsloAgency.providingDocuments.map { Document(url = it.url, type = it.type, languageCode = it.languageCode, providerAgency = topAgency) }
+                topAgency.providingDocuments = euTsloAgency.providingDocuments.map { Document(url = it.url, type = it.type, languageCode = it.languageCode, providedByAgency = topAgency) }
             }
         }
 
@@ -111,7 +110,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                             url = it.textContent,
                             type = DocumentType.TSP_SERVICE_DEFINITION_PDF,
                             languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
-                            providerAgency = tsAgency)
+                            providedByAgency = tsAgency)
                 }
 
                 tsAgency
@@ -126,12 +125,14 @@ class DocumentParsingServiceImpl : DocumentParsingService {
     }
 
     override fun parseTspServiceDefinition(resource: Resource, providerAgency: Agency): List<Document> {
+        LOGGER.info("Parse the TSP service definition: {}", resource.url)
+
         val singleLinePdfText = resource.inputStream.use {
             val pdfParser = PDFParser(RandomAccessBuffer(it))
             pdfParser.parse()
 
             var singleLinePdfText: String = ""
-            var pdDocument : PDDocument? = null
+            var pdDocument: PDDocument? = null
             try {
                 pdDocument = PDDocument(pdfParser.document)
                 val pdfText: String? = PDFTextStripper().getText(pdDocument)
@@ -158,7 +159,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                             url = it,
                             type = DocumentType.CERTIFICATE_REVOCATION_LIST,
                             languageCode = "en",
-                            providerAgency = providerAgency
+                            providedByAgency = providerAgency
                     )
                 }
                 .toList()

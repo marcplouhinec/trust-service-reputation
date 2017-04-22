@@ -23,6 +23,17 @@ class Document (
         var languageCode: String,
 
         @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "PROVIDER_AGENCY_ID", nullable = false)
-        var providerAgency: Agency
+        @JoinColumn(name = "PROVIDED_BY_AGENCY_ID", nullable = false)
+        var providedByAgency: Agency,
+
+        @Column(name = "IS_STILL_PROVIDED_BY_AGENCY", nullable = false)
+        var isStillProvidedByAgency: Boolean = true,
+
+        /**
+         * Property mainly used to indicate to Spring Data whether to INSERT or UPDATE a Document when calling the save() method.
+         */
+        @Version
+        @Column(name = "VERSION")
+        var version: Long? = null
+
 )
