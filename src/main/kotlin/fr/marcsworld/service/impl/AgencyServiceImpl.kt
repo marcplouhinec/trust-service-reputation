@@ -47,7 +47,7 @@ class AgencyServiceImpl(
         updateAgencyNames(tsloAgency.names, existingTsloAgency)
 
         // Update the providingDocuments
-        updateProvidingDocuments(tsloAgency.providingDocuments, existingTsloAgency)
+        updateProvidingDocuments(tsloAgency.providingDocuments, existingTsloAgency, markNotProvidedAnymoreDocuments = false)
 
         // Update the children agencies that are also TRUST_SERVICE_LIST_OPERATORS
         val childrenTsloAgencies = tsloAgency.childAgencies.filter { it.type == AgencyType.TRUST_SERVICE_LIST_OPERATOR }
@@ -194,7 +194,7 @@ class AgencyServiceImpl(
      * @param documents Up-to-date list of [Document]s that are provided by the given [Agency].
      * @param existingTsloAgency [Agency] entity from the Database that provides the given [Document]s.
      */
-    private fun updateProvidingDocuments(documents: List<Document>, existingTsloAgency: Agency) {
+    private fun updateProvidingDocuments(documents: List<Document>, existingTsloAgency: Agency, markNotProvidedAnymoreDocuments: Boolean = true) {
         val existingDocuments = documentRepository.findAllByProvidedByAgencyId(existingTsloAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
 
         // Find the documents to create
@@ -204,7 +204,11 @@ class AgencyServiceImpl(
         val modifiedDocuments = existingDocuments.filter { document -> documents.any { it.url == document.url && !it.languageCode.equals(document.languageCode, ignoreCase = true) } }
 
         // Find the documents that are not provided anymore
-        val notProvidedAnymoreDocuments = existingDocuments.filter { document -> document.isStillProvidedByAgency && documents.none { it.url == document.url } }
+        val notProvidedAnymoreDocuments = if (!markNotProvidedAnymoreDocuments) {
+            listOf()
+        } else {
+            existingDocuments.filter { document -> document.isStillProvidedByAgency && documents.none { it.url == document.url } }
+        }
 
         // Find the documents that are provided again
         val providedAgainDocuments = existingDocuments.filter { document -> !document.isStillProvidedByAgency && documents.any { it.url == document.url } }

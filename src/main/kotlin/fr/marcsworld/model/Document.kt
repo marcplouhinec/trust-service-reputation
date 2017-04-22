@@ -11,7 +11,10 @@ import javax.persistence.*
 @Entity
 @Table(name = "DOCUMENT")
 class Document (
-        @Id
+        @Id @GeneratedValue(strategy = GenerationType.AUTO)
+        @Column(name = "DOCUMENT_ID", nullable = false)
+        var id: Long? = null,
+
         @Column(name = "DOCUMENT_URL", nullable = false, length = 2000)
         var url: String,
 
@@ -27,13 +30,6 @@ class Document (
         var providedByAgency: Agency,
 
         @Column(name = "IS_STILL_PROVIDED_BY_AGENCY", nullable = false)
-        var isStillProvidedByAgency: Boolean = true,
-
-        /**
-         * Property mainly used to indicate to Spring Data whether to INSERT or UPDATE a Document when calling the save() method.
-         */
-        @Version
-        @Column(name = "VERSION")
-        var version: Long? = null
+        var isStillProvidedByAgency: Boolean = true
 
 )

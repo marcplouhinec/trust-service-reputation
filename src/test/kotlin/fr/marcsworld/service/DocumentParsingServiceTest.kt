@@ -63,6 +63,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("Rundfunk und Telekom Regulierungs-GmbH", firstChildAgency.names[0].name)
 
         Assert.assertEquals(1, firstChildAgency.providingDocuments.size)
+        Assert.assertNull(firstChildAgency.providingDocuments[0].id)
         Assert.assertEquals("https://www.signatur.rtr.at/currenttl.xml", firstChildAgency.providingDocuments[0].url)
         Assert.assertEquals(DocumentType.TS_STATUS_LIST_XML, firstChildAgency.providingDocuments[0].type)
         Assert.assertEquals("en", firstChildAgency.providingDocuments[0].languageCode)
@@ -124,6 +125,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("Acteur de l'Administration d'Etat - Authentification 3 étoiles", firstGrandChildAgency.names[0].name)
 
         Assert.assertEquals(2, firstGrandChildAgency.providingDocuments.size)
+        Assert.assertNull(firstGrandChildAgency.providingDocuments[0].id)
         Assert.assertEquals("http://sp.ants.gouv.fr/antsv2/ANTS_AC_AAE_PC_v1.9.pdf", firstGrandChildAgency.providingDocuments[0].url)
         Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION_PDF, firstGrandChildAgency.providingDocuments[0].type)
         Assert.assertEquals("fr", firstGrandChildAgency.providingDocuments[0].languageCode)
@@ -139,6 +141,7 @@ class DocumentParsingServiceTest {
         val documents = documentParsingService.parseTspServiceDefinition(tspServiceDefinitionResource, testAgency)
 
         Assert.assertEquals(1, documents.size)
+        Assert.assertNull(documents[0].id)
         Assert.assertEquals("http://lcr.certimetiersartisanat.fr/reference/certimetiersartisanat.crl", documents[0].url)
         Assert.assertEquals(DocumentType.CERTIFICATE_REVOCATION_LIST, documents[0].type)
         Assert.assertEquals("en", documents[0].languageCode)
