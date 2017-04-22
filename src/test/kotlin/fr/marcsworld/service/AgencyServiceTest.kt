@@ -149,7 +149,27 @@ open class AgencyServiceTest {
 
     @Test
     fun testUpdateTrustServiceListOperatorAgencyWithMissingAndNewAgencyName() {
-        TODO()
+        // Populate the database with agencies
+        val tsStatusListEuResource = ClassPathResource("ts_status_list_eu.xml")
+        val euAgency = documentParsingService.parseTsStatusList(tsStatusListEuResource)
+        agencyService.updateTrustServiceListOperatorAgency(euAgency)
+        entityManager.flush()
+        entityManager.clear()
+
+        // Reload the same top agency, but add a new name and remove another one
+        val modifiedEuAgency = documentParsingService.parseTsStatusList(tsStatusListEuResource)
+        modifiedEuAgency.names = modifiedEuAgency.names.filter { it.languageCode != "fr" } // Remove the french name
+        val englishAgencyName = modifiedEuAgency.names.findLast { it.languageCode == "en" }
+        englishAgencyName?.name = "Modified name." // Modify the english name
+        agencyService.updateTrustServiceListOperatorAgency(modifiedEuAgency)
+        entityManager.flush()
+        entityManager.clear()
+
+        // Check the database was correctly updated
+        val persistedEuAgency = agencyRepository.findTrustServiceListOperatorByTerritoryCode("EU") ?: throw IllegalStateException()
+        Assert.assertEquals(22, persistedEuAgency.names.size)
+        Assert.assertNull(persistedEuAgency.names.findLast { it.languageCode == "fr" })
+        Assert.assertEquals("Modified name.", persistedEuAgency.names.findLast { it.languageCode == "en" }?.name)
     }
 
     @Test

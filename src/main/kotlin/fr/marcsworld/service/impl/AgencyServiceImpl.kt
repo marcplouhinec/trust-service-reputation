@@ -101,7 +101,7 @@ class AgencyServiceImpl(
 
         // Find the children agencies to update
         val modifiedChildrenAgencies = existingChildrenAgencies.filter { agency ->
-            existingChildrenAgencies.any { areAgenciesEquals(agency, it) && it.referencedByDocumentUrl == agency.referencedByDocumentUrl }
+            existingChildrenAgencies.any { areAgenciesEquals(agency, it) && it.referencedByDocumentUrl != agency.referencedByDocumentUrl }
         }
 
         // Find the children agencies that are not referenced anymore
