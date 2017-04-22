@@ -62,14 +62,14 @@ class AgencyServiceImpl(
             updateChildrenAgencies(childrenTspAgencies, existingTsloAgency, true, { agency1, agency2 ->
                 // Find a common language code
                 val commonLanguageCodes = agency1.names
-                        .filter { agencyName -> agency2.names.any { it.languageCode == agencyName.languageCode } }
+                        .filter { agencyName -> agency2.names.any { it.languageCode.equals(agencyName.languageCode, ignoreCase = true) } }
                         .map { it.languageCode }
 
                 if (commonLanguageCodes.isNotEmpty()) {
                     // Compare the names for the first common language code
                     val commonLanguageCode = commonLanguageCodes[0]
-                    val agencyName1 = agency1.names.findLast { it.languageCode.toLowerCase() == commonLanguageCode }
-                    val agencyName2 = agency2.names.findLast { it.languageCode.toLowerCase() == commonLanguageCode }
+                    val agencyName1 = agency1.names.findLast { it.languageCode.equals(commonLanguageCode, ignoreCase = true) }
+                    val agencyName2 = agency2.names.findLast { it.languageCode.equals(commonLanguageCode, ignoreCase = true) }
 
                     agencyName1 is AgencyName && agencyName2 is AgencyName && agencyName1.name == agencyName2.name
                 } else {
@@ -169,13 +169,13 @@ class AgencyServiceImpl(
         val existingAgencyNames = agencyNameRepository.findAllByAgencyId(existingTsloAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
 
         // Find the AgencyNames to create
-        val newAgencyNames = agencyNames.filter { agencyName -> existingAgencyNames.none { it.languageCode == agencyName.languageCode && it.name == agencyName.name } }
+        val newAgencyNames = agencyNames.filter { agencyName -> existingAgencyNames.none { it.languageCode.equals(agencyName.languageCode, ignoreCase = true) && it.name == agencyName.name } }
 
         // Find the AgencyNames to delete
         val missingAgencyNames = if (!deleteMissingNames) {
             listOf()
         } else {
-            existingAgencyNames.filter { agencyName -> agencyNames.none { it.languageCode == agencyName.languageCode && it.name == agencyName.name } }
+            existingAgencyNames.filter { agencyName -> agencyNames.none { it.languageCode.equals(agencyName.languageCode, ignoreCase = true) && it.name == agencyName.name } }
         }
 
         // Update the database
@@ -201,7 +201,7 @@ class AgencyServiceImpl(
         val newDocuments = documents.filter { document -> existingDocuments.none { it.url == document.url } }
 
         // Find the documents to update
-        val modifiedDocuments = existingDocuments.filter { document -> documents.any { it.url == document.url && it.languageCode != document.languageCode } }
+        val modifiedDocuments = existingDocuments.filter { document -> documents.any { it.url == document.url && !it.languageCode.equals(document.languageCode, ignoreCase = true) } }
 
         // Find the documents that are not provided anymore
         val notProvidedAnymoreDocuments = existingDocuments.filter { document -> document.isStillProvidedByAgency && documents.none { it.url == document.url } }
