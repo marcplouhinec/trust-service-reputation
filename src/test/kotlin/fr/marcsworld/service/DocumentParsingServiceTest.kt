@@ -127,7 +127,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(2, firstGrandChildAgency.providingDocuments.size)
         Assert.assertNull(firstGrandChildAgency.providingDocuments[0].id)
         Assert.assertEquals("http://sp.ants.gouv.fr/antsv2/ANTS_AC_AAE_PC_v1.9.pdf", firstGrandChildAgency.providingDocuments[0].url)
-        Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION_PDF, firstGrandChildAgency.providingDocuments[0].type)
+        Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION, firstGrandChildAgency.providingDocuments[0].type)
         Assert.assertEquals("fr", firstGrandChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(firstGrandChildAgency, firstGrandChildAgency.providingDocuments[0].providedByAgency)
 
@@ -146,5 +146,10 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(DocumentType.CERTIFICATE_REVOCATION_LIST, documents[0].type)
         Assert.assertEquals("en", documents[0].languageCode)
         Assert.assertEquals(testAgency, documents[0].providedByAgency)
+
+        // Try to parse a non-PDF file
+        val nonPdfResource = ClassPathResource("ts_status_list_eu.xml")
+        val documents2 = documentParsingService.parseTspServiceDefinition(nonPdfResource, testAgency)
+        Assert.assertEquals(0, documents2.size)
     }
 }

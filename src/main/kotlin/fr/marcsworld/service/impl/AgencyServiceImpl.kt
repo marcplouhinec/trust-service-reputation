@@ -1,6 +1,7 @@
 package fr.marcsworld.service.impl
 
 import fr.marcsworld.enums.AgencyType
+import fr.marcsworld.enums.DocumentType
 import fr.marcsworld.model.Agency
 import fr.marcsworld.model.AgencyName
 import fr.marcsworld.model.Document
@@ -87,6 +88,12 @@ class AgencyServiceImpl(
                 }
             })
         }
+    }
+
+    @Transactional
+    override fun updateTrustServiceAgencyDocuments(tsAgency: Agency, certificateRevocationListDocuments: List<Document>) {
+        LOGGER.info("Update the certificateRevocationListDocuments for the agency: {}.", tsAgency.names.joinToString { "[${it.languageCode}]${it.name}" })
+        updateProvidingDocuments(certificateRevocationListDocuments, tsAgency, markNotProvidedAnymoreDocuments = true, filterType = DocumentType.CERTIFICATE_REVOCATION_LIST)
     }
 
     /**
@@ -203,9 +210,14 @@ class AgencyServiceImpl(
      *
      * @param documents Up-to-date list of [Document]s that are provided by the given [Agency].
      * @param existingTsloAgency [Agency] entity from the Database that provides the given [Document]s.
+     * @param markNotProvidedAnymoreDocuments If true, update the [Document.isStillProvidedByAgency] property of missing documents.
+     * @param filterType If not null, only the documents of this [DocumentType] are updated.
      */
-    private fun updateProvidingDocuments(documents: List<Document>, existingTsloAgency: Agency, markNotProvidedAnymoreDocuments: Boolean = true) {
-        val existingDocuments = documentRepository.findAllByProvidedByAgencyId(existingTsloAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
+    private fun updateProvidingDocuments(documents: List<Document>, existingTsloAgency: Agency, markNotProvidedAnymoreDocuments: Boolean = true, filterType: DocumentType? = null) {
+        var existingDocuments = documentRepository.findAllByProvidedByAgencyId(existingTsloAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
+        if (filterType is DocumentType) {
+            existingDocuments = existingDocuments.filter { it.type == filterType }
+        }
 
         // Find the documents to create
         val newDocuments = documents.filter { document -> existingDocuments.none { it.url == document.url } }

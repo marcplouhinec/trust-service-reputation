@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.SAXParseException
+import java.io.IOException
+import java.nio.charset.Charset
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -49,33 +51,8 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         val resourceUrl = resource.url.toString()
         LOGGER.info("Parse the trust service status list: {}", resourceUrl)
 
-        // Load the XML file in memory
-        val documentByteArray = if (resource is UrlResource) {
-            // Apache HttpClient allows us to ignore problems with SSL certificates and handle redirections
-            try {
-                val sslContext = SSLContext.getInstance("TLS")
-                sslContext.init(null, arrayOf<TrustManager>(noopX509TrustManager), java.security.SecureRandom())
-                val httpClient = HttpClients
-                        .custom()
-                        .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                        .setSSLContext(sslContext)
-                        .build()
-                httpClient.execute(HttpGet(resourceUrl)).use {
-                    it.entity.content.use {
-                        it.readBytes()
-                    }
-                }
-            } catch (e: Exception) {
-                LOGGER.warn("Unable to download the trust service status list: $resourceUrl", e)
-                throw e
-            }
-        } else {
-            resource.inputStream.buffered().use {
-                it.readBytes()
-            }
-        }
-
-        // Parse the XML file
+        // Parse the XML file in memory
+        val documentByteArray = downloadDocument(resource)
         val documentBuilderFactory = DocumentBuilderFactory.newInstance()
         documentBuilderFactory.isNamespaceAware = true
         val documentBuilder = documentBuilderFactory.newDocumentBuilder()
@@ -149,7 +126,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                 tsAgency.providingDocuments = uriNodes.map {
                     Document(
                             url = it.textContent,
-                            type = DocumentType.TSP_SERVICE_DEFINITION_PDF,
+                            type = DocumentType.TSP_SERVICE_DEFINITION,
                             languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
                             providedByAgency = tsAgency)
                 }
@@ -168,24 +145,31 @@ class DocumentParsingServiceImpl : DocumentParsingService {
     override fun parseTspServiceDefinition(resource: Resource, providerAgency: Agency): List<Document> {
         LOGGER.info("Parse the TSP service definition: {}", resource.url)
 
-        val singleLinePdfText = resource.inputStream.use {
-            val pdfParser = PDFParser(RandomAccessBuffer(it))
-            pdfParser.parse()
+        val documentByteArray = downloadDocument(resource)
 
-            var singleLinePdfText: String = ""
-            var pdDocument: PDDocument? = null
+        val singleLinePdfText = documentByteArray.inputStream().use {
             try {
-                pdDocument = PDDocument(pdfParser.document)
-                val pdfText: String? = PDFTextStripper().getText(pdDocument)
-                if (pdfText is String) {
-                    singleLinePdfText = pdfText.replace("\n", "").toLowerCase()
-                }
-            } finally {
-                pdfParser.document.close()
-                pdDocument?.close()
-            }
+                val pdfParser = PDFParser(RandomAccessBuffer(it))
+                pdfParser.parse()
 
-            singleLinePdfText
+                var singleLinePdfText: String = ""
+                var pdDocument: PDDocument? = null
+                try {
+                    pdDocument = PDDocument(pdfParser.document)
+                    val pdfText: String? = PDFTextStripper().getText(pdDocument)
+                    if (pdfText is String) {
+                        singleLinePdfText = pdfText.replace("\n", "").toLowerCase()
+                    }
+                } finally {
+                    pdfParser.document.close()
+                    pdDocument?.close()
+                }
+
+                singleLinePdfText
+            } catch (e: IOException) {
+                // This is not a PDF file, so just try to open it like a text file
+                documentByteArray.toString(Charset.forName("UTF-8")).replace("\n", "").toLowerCase()
+            }
         }
 
         val crlRegex = """http[^\s]{1,2000}\.crl""".toRegex()
@@ -235,6 +219,41 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                     agency = agency,
                     languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
                     name = it.textContent ?: throw IllegalArgumentException("Missing Name text."))
+        }
+    }
+
+    /**
+     * Download the document accessible from the given [resource].
+     *
+     * @param resource [Resource] to the document data.
+     * @return Document data.
+     */
+    private fun downloadDocument(resource: Resource): ByteArray {
+        val resourceUrl = resource.url.toString()
+
+        return if (resource is UrlResource) {
+            // Apache HttpClient allows us to ignore problems with SSL certificates and handle redirections
+            try {
+                val sslContext = SSLContext.getInstance("TLS")
+                sslContext.init(null, arrayOf<TrustManager>(noopX509TrustManager), java.security.SecureRandom())
+                val httpClient = HttpClients
+                        .custom()
+                        .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                        .setSSLContext(sslContext)
+                        .build()
+                httpClient.execute(HttpGet(resourceUrl)).use {
+                    it.entity.content.use {
+                        it.readBytes()
+                    }
+                }
+            } catch (e: Exception) {
+                LOGGER.warn("Unable to download the document: $resourceUrl", e)
+                throw e
+            }
+        } else {
+            resource.inputStream.buffered().use {
+                it.readBytes()
+            }
         }
     }
 

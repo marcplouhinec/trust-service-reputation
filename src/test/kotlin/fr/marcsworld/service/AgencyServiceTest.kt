@@ -143,7 +143,7 @@ open class AgencyServiceTest {
         Assert.assertEquals("Acteur de l'Administration d'Etat - Authentification 3 étoiles", persistedGrandChildAgency.names[0].name)
         Assert.assertEquals(2, persistedGrandChildAgency.providingDocuments.size)
         Assert.assertEquals("http://sp.ants.gouv.fr/antsv2/ANTS_AC_AAE_PC_v1.9.pdf", persistedGrandChildAgency.providingDocuments[0].url)
-        Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION_PDF, persistedGrandChildAgency.providingDocuments[0].type)
+        Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION, persistedGrandChildAgency.providingDocuments[0].type)
         Assert.assertEquals("fr", persistedGrandChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(persistedGrandChildAgency, persistedGrandChildAgency.providingDocuments[0].providedByAgency)
         Assert.assertEquals(true, persistedGrandChildAgency.providingDocuments[0].isStillProvidedByAgency)

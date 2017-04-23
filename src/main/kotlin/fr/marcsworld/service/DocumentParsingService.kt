@@ -20,7 +20,7 @@ interface DocumentParsingService {
     fun parseTsStatusList(resource: Resource): Agency
 
     /**
-     * Parse the content of a document of the type [fr.marcsworld.enums.DocumentType.TSP_SERVICE_DEFINITION_PDF].
+     * Parse the content of a document of the type [fr.marcsworld.enums.DocumentType.TSP_SERVICE_DEFINITION].
      *
      * @param resource Document resource.
      * @param providerAgency Trust Service [Agency] that provides this resource.

@@ -14,7 +14,7 @@ enum class DocumentType {
     /**
      * PDF document that describes a particular Trust Service.
      */
-    TSP_SERVICE_DEFINITION_PDF,
+    TSP_SERVICE_DEFINITION,
 
     /**
      * Document containing revoked signing certificates.
