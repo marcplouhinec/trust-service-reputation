@@ -10,7 +10,7 @@ import fr.marcsworld.repository.DocumentRepository
 import fr.marcsworld.service.AgencyService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import javax.transaction.Transactional
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Default implementation of [AgencyService].
@@ -26,6 +26,16 @@ class AgencyServiceImpl(
 
     companion object {
         val LOGGER = LoggerFactory.getLogger(AgencyServiceImpl::class.java)!!
+    }
+
+    @Transactional(readOnly = true)
+    override fun findRootAgency(): Agency {
+        return agencyRepository.findRootAgency() ?: throw IllegalStateException("Unable to find the root agency.")
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllStillReferencedAgenciesByParentAgencyId(parentAgencyId: Long): List<Agency> {
+        return agencyRepository.findAllStillReferencedAgenciesByParentAgencyId(parentAgencyId)
     }
 
     @Transactional

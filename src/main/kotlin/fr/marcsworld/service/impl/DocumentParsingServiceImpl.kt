@@ -12,14 +12,18 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
+import org.springframework.core.io.UrlResource
 import org.springframework.stereotype.Service
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
+import org.xml.sax.SAXParseException
+import java.nio.charset.Charset
 import javax.xml.XMLConstants
 import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
+import org.apache.http.client.fluent.Request
 
 /**
  * Default implementation of [DocumentParsingService].
@@ -39,12 +43,26 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         val resourceUrl = resource.url.toString()
         LOGGER.info("Parse the trust service status list: {}", resourceUrl)
 
-        // Parse the XML file in memory
+        // Load the XML file in memory
+        val documentByteArray = if (resource is UrlResource) {
+            Request.Get(resourceUrl).execute().returnContent().asBytes() // Apache HttpClient is more flexible
+        } else {
+            resource.inputStream.buffered().use {
+                it.readBytes()
+            }
+        }
+
+        // Parse the XML file
         val documentBuilderFactory = DocumentBuilderFactory.newInstance()
         documentBuilderFactory.isNamespaceAware = true
         val documentBuilder = documentBuilderFactory.newDocumentBuilder()
-        val document = resource.inputStream.buffered().use {
-            documentBuilder.parse(it)
+        val document = try {
+            documentByteArray.inputStream().buffered().use {
+                documentBuilder.parse(it)
+            }
+        } catch (e: SAXParseException) {
+            LOGGER.error("Invalid XML document from $resourceUrl: ${documentByteArray.toString(Charset.forName("UTF-8"))}", e)
+            throw e
         }
 
         // Parse the TRUST_SERVICE_LIST_OPERATOR agency

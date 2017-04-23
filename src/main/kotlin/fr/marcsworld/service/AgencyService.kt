@@ -10,6 +10,21 @@ import fr.marcsworld.model.Agency
 interface AgencyService {
 
     /**
+     * Find the root [Agency].
+     *
+     * @return Root [Agency].
+     */
+    fun findRootAgency(): Agency
+
+    /**
+     * Find all the [Agency]s with their parameter [Agency.isStillReferencedByDocument] as true by their [Agency.parentAgency] ID.
+     *
+     * @param parentAgencyId ID of the parent [Agency].
+     * @return Found [Agency]s.
+     */
+    fun findAllStillReferencedAgenciesByParentAgencyId(parentAgencyId: Long): List<Agency>
+
+    /**
      * Update in the database the given [Agency], then create or update the children agencies and documents.
      *
      * This method is not generic and expects two types of agencies:

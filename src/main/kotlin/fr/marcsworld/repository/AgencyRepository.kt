@@ -29,4 +29,21 @@ interface AgencyRepository : CrudRepository<Agency, Long> {
      */
     fun findAllByParentAgencyId(parentAgencyId: Long): List<Agency>
 
+    /**
+     * Find all the [Agency]s with their parameter [Agency.isStillReferencedByDocument] as true by their [Agency.parentAgency] ID.
+     *
+     * @param parentAgencyId ID of the parent [Agency].
+     * @return Found [Agency]s.
+     */
+    @Query("SELECT agency FROM Agency agency WHERE agency.isStillReferencedByDocument = true AND agency.parentAgency.id = ?1")
+    fun findAllStillReferencedAgenciesByParentAgencyId(parentAgencyId: Long): List<Agency>
+
+    /**
+     * Find the root [Agency].
+     *
+     * @return Root [Agency].
+     */
+    @Query("SELECT agency FROM Agency agency WHERE agency.parentAgency IS NULL")
+    fun findRootAgency(): Agency?
+
 }
