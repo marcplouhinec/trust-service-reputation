@@ -6,6 +6,9 @@ import fr.marcsworld.model.Agency
 import fr.marcsworld.model.AgencyName
 import fr.marcsworld.model.Document
 import fr.marcsworld.service.DocumentParsingService
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.conn.ssl.NoopHostnameVerifier
+import org.apache.http.impl.client.HttpClients
 import org.apache.pdfbox.io.RandomAccessBuffer
 import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -17,13 +20,15 @@ import org.springframework.stereotype.Service
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.SAXParseException
-import java.nio.charset.Charset
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import javax.xml.XMLConstants
 import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
-import org.apache.http.client.fluent.Request
 
 /**
  * Default implementation of [DocumentParsingService].
@@ -38,6 +43,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
     }
 
     private val namespaceContext = TsStatusListNamespaceContext()
+    private val noopX509TrustManager = NoopX509TrustManager()
 
     override fun parseTsStatusList(resource: Resource): Agency {
         val resourceUrl = resource.url.toString()
@@ -45,7 +51,24 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
         // Load the XML file in memory
         val documentByteArray = if (resource is UrlResource) {
-            Request.Get(resourceUrl).execute().returnContent().asBytes() // Apache HttpClient is more flexible
+            // Apache HttpClient allows us to ignore problems with SSL certificates and handle redirections
+            try {
+                val sslContext = SSLContext.getInstance("TLS")
+                sslContext.init(null, arrayOf<TrustManager>(noopX509TrustManager), java.security.SecureRandom())
+                val httpClient = HttpClients
+                        .custom()
+                        .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                        .setSSLContext(sslContext)
+                        .build()
+                httpClient.execute(HttpGet(resourceUrl)).use {
+                    it.entity.content.use {
+                        it.readBytes()
+                    }
+                }
+            } catch (e: Exception) {
+                LOGGER.warn("Unable to download the trust service status list: $resourceUrl", e)
+                throw e
+            }
         } else {
             resource.inputStream.buffered().use {
                 it.readBytes()
@@ -61,7 +84,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                 documentBuilder.parse(it)
             }
         } catch (e: SAXParseException) {
-            LOGGER.error("Invalid XML document from $resourceUrl: ${documentByteArray.toString(Charset.forName("UTF-8"))}", e)
+            LOGGER.warn("Invalid XML document from: $resourceUrl", e)
             throw e
         }
 
@@ -235,6 +258,21 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
         override fun getPrefixes(namespaceURI: String?): MutableIterator<Any?> {
             throw UnsupportedOperationException()
+        }
+    }
+
+    /**
+     * [X509TrustManager] that does nothing. It is useful for accepting any SSL certificate
+     */
+    private class NoopX509TrustManager : X509TrustManager {
+        override fun checkClientTrusted(p0: Array<out X509Certificate>?, p1: String?) {
+        }
+
+        override fun checkServerTrusted(p0: Array<out X509Certificate>?, p1: String?) {
+        }
+
+        override fun getAcceptedIssuers(): Array<X509Certificate> {
+            return arrayOf()
         }
     }
 }
