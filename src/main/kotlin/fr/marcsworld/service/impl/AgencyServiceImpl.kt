@@ -93,7 +93,7 @@ class AgencyServiceImpl(
     @Transactional
     override fun updateTrustServiceAgencyDocuments(tsAgency: Agency, certificateRevocationListDocuments: List<Document>) {
         LOGGER.info("Update the certificateRevocationListDocuments for the agency: {}.", tsAgency.names.joinToString { "[${it.languageCode}]${it.name}" })
-        updateProvidingDocuments(certificateRevocationListDocuments, tsAgency, markNotProvidedAnymoreDocuments = true, filterType = DocumentType.CERTIFICATE_REVOCATION_LIST)
+        updateProvidingDocuments(certificateRevocationListDocuments, tsAgency, markNotProvidedAnymoreDocuments = true, handleCertificateRevocationList = true)
     }
 
     /**
@@ -209,14 +209,16 @@ class AgencyServiceImpl(
      * Update the given [Document]s that are provided by the given [Agency].
      *
      * @param documents Up-to-date list of [Document]s that are provided by the given [Agency].
-     * @param existingTsloAgency [Agency] entity from the Database that provides the given [Document]s.
+     * @param existingAgency [Agency] entity from the Database that provides the given [Document]s.
      * @param markNotProvidedAnymoreDocuments If true, update the [Document.isStillProvidedByAgency] property of missing documents.
-     * @param filterType If not null, only the documents of this [DocumentType] are updated.
+     * @param handleCertificateRevocationList The [DocumentType.CERTIFICATE_REVOCATION_LIST] are handled if true or ignored if false.
      */
-    private fun updateProvidingDocuments(documents: List<Document>, existingTsloAgency: Agency, markNotProvidedAnymoreDocuments: Boolean = true, filterType: DocumentType? = null) {
-        var existingDocuments = documentRepository.findAllByProvidedByAgencyId(existingTsloAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
-        if (filterType is DocumentType) {
-            existingDocuments = existingDocuments.filter { it.type == filterType }
+    private fun updateProvidingDocuments(documents: List<Document>, existingAgency: Agency, markNotProvidedAnymoreDocuments: Boolean = true, handleCertificateRevocationList: Boolean = false) {
+        var existingDocuments = documentRepository.findAllByProvidedByAgencyId(existingAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
+        if (handleCertificateRevocationList) {
+            existingDocuments = existingDocuments.filter { it.type == DocumentType.CERTIFICATE_REVOCATION_LIST }
+        } else {
+            existingDocuments = existingDocuments.filter { it.type != DocumentType.CERTIFICATE_REVOCATION_LIST }
         }
 
         // Find the documents to create
@@ -237,7 +239,7 @@ class AgencyServiceImpl(
 
         // Update the database
         for (document in newDocuments) {
-            document.providedByAgency = existingTsloAgency
+            document.providedByAgency = existingAgency
             documentRepository.save(document)
         }
         for (document in modifiedDocuments) {

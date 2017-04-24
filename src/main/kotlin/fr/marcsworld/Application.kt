@@ -35,8 +35,8 @@ class Application : SchedulingConfigurer {
     @Bean(destroyMethod = "shutdown")
     fun documentParsingTaskExecutor(): TaskExecutor {
         val taskExecutor = ThreadPoolTaskExecutor()
-        taskExecutor.corePoolSize = 10
-        taskExecutor.maxPoolSize = 20
+        taskExecutor.corePoolSize = 30
+        taskExecutor.setAllowCoreThreadTimeOut(true)
         return taskExecutor
     }
 }

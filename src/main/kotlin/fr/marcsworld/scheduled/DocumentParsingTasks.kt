@@ -30,7 +30,7 @@ open class DocumentParsingTasks(
     /**
      * Load the root agency documents, parse them and update the database and schedule tasks for parsing children agency documents.
      */
-    @Scheduled(fixedRate = 20 * 60 * 1000, initialDelay = 10_000)
+    @Scheduled(fixedRate = 100 * 60 * 1000, initialDelay = 10_000)
     fun parseRootAgencyDocuments() {
         LOGGER.info("Parse the root agency documents.")
 
@@ -92,10 +92,11 @@ open class DocumentParsingTasks(
             LOGGER.info("Parse the documents of the TrustService agency {}.", agency.names.joinToString { "[${it.languageCode}]${it.name}" })
 
             val providedDocuments = documentService.findAllStillProvidedDocumentsByAgencyIdAndByType(agency.id!!, DocumentType.TSP_SERVICE_DEFINITION)
-            for (document in providedDocuments) {
-                val certificateRevocationListDocuments = documentParsingService.parseTspServiceDefinition(UrlResource(document.url), agency)
-                agencyService.updateTrustServiceAgencyDocuments(agency, certificateRevocationListDocuments)
-            }
+            val certificateRevocationListDocuments = providedDocuments
+                    .flatMap { documentParsingService.parseTspServiceDefinition(UrlResource(it.url), agency) }
+                    .distinctBy { it.url }
+                    .toList()
+            agencyService.updateTrustServiceAgencyDocuments(agency, certificateRevocationListDocuments)
         }
 
     }
