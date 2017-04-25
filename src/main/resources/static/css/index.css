@@ -9,6 +9,10 @@ body {
     font-size: 12px;
 }
 
+/*
+ * Agency block
+ */
+
 .agency {
     width: 450px;
 
@@ -26,28 +30,84 @@ body {
 
 table.agency-properties {
     table-layout: fixed;
+
+    font-size: 11px;
 }
 
 table.agency-properties > tbody > tr > th {
-    width: 100px;
-    padding: 4px;
+    width: 90px;
+    padding: 2px;
 
     text-align: left;
     vertical-align: top;
 }
 
 table.agency-properties > tbody > tr > td {
-    padding: 4px;
+    padding: 2px;
 }
 
 table.agency-names {
     table-layout: fixed;
-}
-
-table.agency-names {
-    table-layout: fixed;
+    border-collapse: collapse;
 }
 
 table.agency-names > tbody > tr > th {
     color: #509fe1;
+    text-align: left;
+}
+
+/*
+ * Agency block sub-sections
+ */
+
+.agency-subsections-wrapper {
+    display: flex;
+    align-items: stretch;
+}
+
+.agency-subsections-tree {
+    display: flex;
+    flex-direction: column;
+}
+
+.agency-subsections-tree-part1, .agency-subsections-tree-part2, .agency-subsections-tree-part3, .agency-subsections-tree-part4 {
+    margin-left: 20px;
+    flex: 1;
+    width: 20px
+}
+
+.agency-subsections-tree-part1, .agency-subsections-tree-part3 {
+    border-left: 1px dotted black;
+    border-bottom: 1px dotted black;
+}
+
+.agency-subsections-tree-part2 {
+    border-left: 1px dotted black;
+}
+
+.agency-subsections {
+    display: flex;
+    flex-direction: column;
+}
+
+.agency-subsections-documents-wrapper, .agency-subsections-sub-agencies-wrapper {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.agency-subsections-documents, .agency-subsections-sub-agencies {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding: 4px;
+}
+
+.agency-subsections-documents {
+    border: 1px solid black;
+    border-radius: 4px;
+}
+
+.agency-subsections-sub-agencies {
+    border: 1px solid black;
+    border-radius: 4px;
 }
