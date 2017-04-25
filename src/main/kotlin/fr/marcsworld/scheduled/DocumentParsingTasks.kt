@@ -30,7 +30,7 @@ open class DocumentParsingTasks(
     /**
      * Load the root agency documents, parse them and update the database and schedule tasks for parsing children agency documents.
      */
-    @Scheduled(fixedRate = 100 * 60 * 1000, initialDelay = 10_000)
+    @Scheduled(fixedRate = 100 * 60 * 1000, initialDelay = 100 * 60 * 1000)
     fun parseRootAgencyDocuments() {
         LOGGER.info("Parse the root agency documents.")
 

@@ -1,0 +1,53 @@
+/**
+ * Stylesheet for the homepage.
+ *
+ * @author Marc Plouhinec
+ */
+
+body {
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+}
+
+.agency {
+    width: 450px;
+
+    background-color: #FFFFC8;
+    border: 1px solid #FDBE2D;
+    border-radius: 4px;
+
+    word-wrap: break-word;
+}
+
+.agency-header {
+    padding: 8px;
+    border-bottom: 1px solid #FDBE2D;
+}
+
+table.agency-properties {
+    table-layout: fixed;
+}
+
+table.agency-properties > tbody > tr > th {
+    width: 100px;
+    padding: 4px;
+
+    text-align: left;
+    vertical-align: top;
+}
+
+table.agency-properties > tbody > tr > td {
+    padding: 4px;
+}
+
+table.agency-names {
+    table-layout: fixed;
+}
+
+table.agency-names {
+    table-layout: fixed;
+}
+
+table.agency-names > tbody > tr > th {
+    color: #509fe1;
+}
