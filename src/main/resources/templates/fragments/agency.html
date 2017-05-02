@@ -46,7 +46,7 @@
         </table>
     </div>
     <div class="agency-children">
-        <div class="agency-child">
+        <div class="agency-child" th:if="${!agencyNode.documentNodes.isEmpty()}">
             <div class="agency-child-tree">
                 <div class="agency-child-tree-vh"></div>
                 <div class="agency-child-tree-v"></div>
@@ -58,7 +58,7 @@
                 </div>
             </div>
         </div>
-        <div class="agency-child">
+        <div class="agency-child" th:if="${!agencyNode.childrenAgencyNodes.isEmpty()}">
             <div class="agency-child-tree">
                 <div class="agency-child-tree-vh"></div>
             </div>
@@ -66,6 +66,18 @@
                 <div class="sub-agencies">
                     <label>Sub-agencies (<span th:text="${agencyNode.childrenAgencyNodes.size()}">5</span>)</label>
                     <button>+</button>
+                </div>
+
+                <div class="agency-children" th:each="childAgencyNode, iterChildAgencyNode : ${agencyNode.childrenAgencyNodes}">
+                    <div class="agency-child">
+                        <div class="agency-child-tree">
+                            <div class="agency-child-tree-vh"></div>
+                            <div th:if="${!iterChildAgencyNode.last}" class="agency-child-tree-v"></div>
+                        </div>
+                        <div class="agency-child-node">
+                            <div th:include="fragments/agency :: agency (agencyNode=${childAgencyNode})"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

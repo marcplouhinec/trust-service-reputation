@@ -76,6 +76,7 @@ table.agency-names > tbody > tr > th {
 
 .agency-child-node {
     display: flex;
+    flex-direction: column;
     flex: 1;
     padding-top: 24px;
 }
@@ -96,6 +97,8 @@ table.agency-names > tbody > tr > th {
 .documents, .sub-agencies {
     display: flex;
     align-items: center;
+
+    width: 172px;
 
     border-radius: 4px;
 
