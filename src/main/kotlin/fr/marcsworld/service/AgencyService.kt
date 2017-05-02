@@ -1,7 +1,8 @@
 package fr.marcsworld.service
 
-import fr.marcsworld.model.Agency
-import fr.marcsworld.model.Document
+import fr.marcsworld.model.dto.AgencyNode
+import fr.marcsworld.model.entity.Agency
+import fr.marcsworld.model.entity.Document
 
 /**
  * Service for handling [Agency]s.
@@ -24,6 +25,13 @@ interface AgencyService {
      * @return Found [Agency]s.
      */
     fun findAllStillReferencedAgenciesByParentAgencyId(parentAgencyId: Long): List<Agency>
+
+    /**
+     * Find [Agency]s with related information and build a tree.
+     *
+     * @return Tree root [AgencyNode].
+     */
+    fun findAgencyTree(): AgencyNode
 
     /**
      * Update in the database the given [Agency], then create or update the children agencies and documents.

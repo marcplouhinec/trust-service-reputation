@@ -6,65 +6,9 @@
     <link th:href="@{/css/index.css}" rel="stylesheet" media="screen"/>
 </head>
 <body>
-<div class="agency">
-    <div class="agency-header">
-        European Commission
-    </div>
-    <table class="agency-properties">
-        <tbody>
-        <tr>
-            <th>Type</th>
-            <td>TRUST_SERVICE_LIST_OPERATOR</td>
-        </tr>
-        <tr>
-            <th>Referenced by</th>
-            <td>https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml</td>
-        </tr>
-        <tr>
-            <th>Status</th>
-            <td>Active</td>
-        </tr>
-        <tr>
-            <th>Territory</th>
-            <td>EU</td>
-        </tr>
-        <tr>
-            <th>Names</th>
-            <td>
-                <table class="agency-names">
-                    <tr><th>en</th><td>European Commission</td></tr>
-                    <tr><th>fr</th><td>Commission Européenne</td></tr>
-                </table>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-<div class="agency-children">
-    <div class="agency-child">
-        <div class="agency-child-tree">
-            <div class="agency-child-tree-vh"></div>
-            <div class="agency-child-tree-v"></div>
-        </div>
-        <div class="agency-child-node">
-            <div class="documents">
-                <label>Documents (1)</label>
-                <button>+</button>
-            </div>
-        </div>
-    </div>
-    <div class="agency-child">
-        <div class="agency-child-tree">
-            <div class="agency-child-tree-vh"></div>
-        </div>
-        <div class="agency-child-node">
-            <div class="sub-agencies">
-                <label>Sub-agencies (31)</label>
-                <button>+</button>
-            </div>
-        </div>
-    </div>
-</div>
+
+<!--/*@thymesVar id="rootAgencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
+<div th:include="fragments/agency :: agency (agencyNode=${rootAgencyNode})"></div>
 
 </body>
 </html>

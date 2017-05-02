@@ -2,9 +2,10 @@ package fr.marcsworld.service.impl
 
 import fr.marcsworld.enums.AgencyType
 import fr.marcsworld.enums.DocumentType
-import fr.marcsworld.model.Agency
-import fr.marcsworld.model.AgencyName
-import fr.marcsworld.model.Document
+import fr.marcsworld.model.dto.AgencyNode
+import fr.marcsworld.model.entity.Agency
+import fr.marcsworld.model.entity.AgencyName
+import fr.marcsworld.model.entity.Document
 import fr.marcsworld.repository.AgencyNameRepository
 import fr.marcsworld.repository.AgencyRepository
 import fr.marcsworld.repository.DocumentRepository
@@ -39,6 +40,46 @@ class AgencyServiceImpl(
         return agencyRepository.findAllStillReferencedAgenciesByParentAgencyId(parentAgencyId)
     }
 
+    @Transactional(readOnly = true)
+    override fun findAgencyTree(): AgencyNode {
+        // Find all the agencies
+        val agencies = agencyRepository.findAll()
+
+        // Find all documents with statistical information
+        // TODO
+
+        // Build the tree
+        val agenciesByParent = agencies.groupBy(Agency::parentAgency)
+        val rootAgencies = agenciesByParent[null] ?: throw IllegalStateException("Unable to find the root agency.")
+        val rootAgency = rootAgencies[0]
+
+        fun buildAgencyNode(currentAgency: Agency): AgencyNode {
+            // Choose the main agency name by firstly looking for the english one. If not found find the first one.
+            var mainAgencyName = currentAgency.names.findLast { it.languageCode.equals("en", ignoreCase = true) }
+            if (mainAgencyName !is AgencyName) {
+                mainAgencyName = currentAgency.names.firstOrNull()
+            }
+            if (mainAgencyName !is AgencyName) {
+                mainAgencyName = AgencyName(agency = currentAgency, languageCode = "en", name = "NO NAME")
+            }
+
+            // Set the agency status
+            val active = when {
+                currentAgency.parentAgency !is Agency -> true
+                currentAgency.isStillReferencedByDocument == true -> true
+                else -> false
+            }
+
+            // Build the children agency nodes
+            val childrenAgencies = agenciesByParent[currentAgency]
+            val childrenAgencyNodes = (childrenAgencies as? List)?.map(::buildAgencyNode) ?: listOf()
+
+            // Build the agency node
+            return AgencyNode(currentAgency, mainAgencyName, active, listOf(), childrenAgencyNodes)
+        }
+        return buildAgencyNode(rootAgency)
+    }
+
     @Transactional
     override fun updateTrustServiceListOperatorAgency(tsloAgency: Agency) {
         LOGGER.info("Update the TrustServiceListOperatorAgency for the territory: {}.", tsloAgency.territoryCode)
@@ -61,13 +102,13 @@ class AgencyServiceImpl(
         updateProvidingDocuments(tsloAgency.providingDocuments, existingTsloAgency, markNotProvidedAnymoreDocuments = false)
 
         // Update the children agencies that are also TRUST_SERVICE_LIST_OPERATORS
-        val childrenTsloAgencies = tsloAgency.childAgencies.filter { it.type == AgencyType.TRUST_SERVICE_LIST_OPERATOR }
+        val childrenTsloAgencies = tsloAgency.childrenAgencies.filter { it.type == AgencyType.TRUST_SERVICE_LIST_OPERATOR }
         if (childrenTsloAgencies.isNotEmpty()) {
             updateChildrenAgencies(childrenTsloAgencies, existingTsloAgency, false, { agency1, agency2 -> agency1.territoryCode == agency2.territoryCode })
         }
 
         // Update the children agencies that are TRUST_SERVICE_PROVIDERS (including their children that are TRUST_SERVICES)
-        val childrenTspAgencies = tsloAgency.childAgencies.filter { it.type == AgencyType.TRUST_SERVICE_PROVIDER }
+        val childrenTspAgencies = tsloAgency.childrenAgencies.filter { it.type == AgencyType.TRUST_SERVICE_PROVIDER }
         if (childrenTspAgencies.isNotEmpty()) {
             // Unfortunately, the only way to check the equality of two agencies (that are not TRUST_SERVICE_LIST_OPERATOR) is by comparing their names
             updateChildrenAgencies(childrenTspAgencies, existingTsloAgency, true, { agency1, agency2 ->
@@ -170,7 +211,7 @@ class AgencyServiceImpl(
                 updateProvidingDocuments(upToDateAgency.providingDocuments, agency)
 
                 // Update the children agencies
-                updateChildrenAgencies(upToDateAgency.childAgencies, agency, deleteMissingNames, areAgenciesEquals)
+                updateChildrenAgencies(upToDateAgency.childrenAgencies, agency, deleteMissingNames, areAgenciesEquals)
             }
         }
     }

@@ -1,7 +1,7 @@
 package fr.marcsworld.repository
 
 import fr.marcsworld.enums.AgencyType
-import fr.marcsworld.model.Agency
+import fr.marcsworld.model.entity.Agency
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 

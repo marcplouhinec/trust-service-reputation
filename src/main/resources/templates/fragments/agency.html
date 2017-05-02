@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Trust Service Reputation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link th:href="@{/css/index.css}" rel="stylesheet" media="screen"/>
+</head>
+<body>
+
+<div class="agency-wrapper" th:fragment="agency (agencyNode)">
+    <!--/*@thymesVar id="agencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
+    <div class="agency">
+        <div class="agency-header" th:text="${agencyNode.mainAgencyName.name}">
+            European Commission
+        </div>
+        <table class="agency-properties">
+            <tr>
+                <th>Type</th>
+                <td th:text="${agencyNode.agency.type}">TRUST_SERVICE_LIST_OPERATOR</td>
+            </tr>
+            <tr th:if="${agencyNode.agency.referencedByDocumentUrl}">
+                <th>Referenced by</th>
+                <td th:text="${agencyNode.agency.referencedByDocumentUrl}">
+                    https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml
+                </td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td th:text="${agencyNode.active ? 'Active' : 'Inactive'}">Active</td>
+            </tr>
+            <tr th:if="${agencyNode.agency.territoryCode}">
+                <th>Territory</th>
+                <td th:text="${agencyNode.agency.territoryCode}">EU</td>
+            </tr>
+            <tr>
+                <th>Names</th>
+                <td>
+                    <table class="agency-names">
+                        <tr th:each="agencyName : ${agencyNode.agency.names}">
+                            <th th:text="${agencyName.languageCode}">en</th>
+                            <td th:text="${agencyName.name}">European Commission</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="agency-children">
+        <div class="agency-child">
+            <div class="agency-child-tree">
+                <div class="agency-child-tree-vh"></div>
+                <div class="agency-child-tree-v"></div>
+            </div>
+            <div class="agency-child-node">
+                <div class="documents">
+                    <label>Documents (<span th:text="${agencyNode.documentNodes.size()}">2</span>)</label>
+                    <button>+</button>
+                </div>
+            </div>
+        </div>
+        <div class="agency-child">
+            <div class="agency-child-tree">
+                <div class="agency-child-tree-vh"></div>
+            </div>
+            <div class="agency-child-node">
+                <div class="sub-agencies">
+                    <label>Sub-agencies (<span th:text="${agencyNode.childrenAgencyNodes.size()}">5</span>)</label>
+                    <button>+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

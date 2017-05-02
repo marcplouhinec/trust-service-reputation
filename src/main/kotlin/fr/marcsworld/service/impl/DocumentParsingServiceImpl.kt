@@ -2,9 +2,9 @@ package fr.marcsworld.service.impl
 
 import fr.marcsworld.enums.AgencyType
 import fr.marcsworld.enums.DocumentType
-import fr.marcsworld.model.Agency
-import fr.marcsworld.model.AgencyName
-import fr.marcsworld.model.Document
+import fr.marcsworld.model.entity.Agency
+import fr.marcsworld.model.entity.AgencyName
+import fr.marcsworld.model.entity.Document
 import fr.marcsworld.service.DocumentParsingService
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.conn.ssl.NoopHostnameVerifier
@@ -114,7 +114,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
             // Parse the children TRUST_SERVICE agencies
             val tspServiceNode = evalXPathToNodes(it, "./v2:TSPServices/v2:TSPService")
-            tspAgency.childAgencies = tspServiceNode.map {
+            tspAgency.childrenAgencies = tspServiceNode.map {
                 val tsAgency = Agency(
                         parentAgency = tspAgency,
                         type = AgencyType.TRUST_SERVICE,
@@ -137,7 +137,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
             tspAgency
         }
 
-        topAgency.childAgencies = memberStateTsloAgencies + childrenTspAgencies
+        topAgency.childrenAgencies = memberStateTsloAgencies + childrenTspAgencies
 
         return topAgency
     }

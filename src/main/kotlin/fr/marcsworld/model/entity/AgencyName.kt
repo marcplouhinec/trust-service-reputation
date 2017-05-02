@@ -1,4 +1,4 @@
-package fr.marcsworld.model
+package fr.marcsworld.model.entity
 
 import javax.persistence.*
 

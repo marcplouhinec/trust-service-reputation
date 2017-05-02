@@ -1,4 +1,4 @@
-package fr.marcsworld.model
+package fr.marcsworld.model.entity
 
 import fr.marcsworld.enums.AgencyType
 import javax.persistence.*
@@ -39,5 +39,5 @@ class Agency (
         var providingDocuments: List<Document> = listOf(),
 
         @OneToMany(mappedBy = "parentAgency", fetch = FetchType.LAZY)
-        var childAgencies : List<Agency> = listOf()
+        var childrenAgencies: List<Agency> = listOf()
 )

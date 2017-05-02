@@ -2,7 +2,7 @@ package fr.marcsworld.service
 
 import fr.marcsworld.enums.AgencyType
 import fr.marcsworld.enums.DocumentType
-import fr.marcsworld.model.Agency
+import fr.marcsworld.model.entity.Agency
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,8 +48,8 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(topAgency, topAgency.providingDocuments[0].providedByAgency)
 
         // Check the first child agency
-        Assert.assertEquals(31, topAgency.childAgencies.size)
-        val firstChildAgency = topAgency.childAgencies[0]
+        Assert.assertEquals(31, topAgency.childrenAgencies.size)
+        val firstChildAgency = topAgency.childrenAgencies[0]
         Assert.assertNull(firstChildAgency.id)
         Assert.assertEquals(topAgency, firstChildAgency.parentAgency)
         Assert.assertEquals(AgencyType.TRUST_SERVICE_LIST_OPERATOR, firstChildAgency.type)
@@ -69,7 +69,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("en", firstChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(firstChildAgency, firstChildAgency.providingDocuments[0].providedByAgency)
 
-        Assert.assertEquals(0, firstChildAgency.childAgencies.size)
+        Assert.assertEquals(0, firstChildAgency.childrenAgencies.size)
     }
 
     @Test
@@ -93,8 +93,8 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(0, topAgency.providingDocuments.size)
 
         // Check the first child agency
-        Assert.assertEquals(22, topAgency.childAgencies.size)
-        val firstChildAgency = topAgency.childAgencies[0]
+        Assert.assertEquals(22, topAgency.childrenAgencies.size)
+        val firstChildAgency = topAgency.childrenAgencies[0]
         Assert.assertNull(firstChildAgency.id)
         Assert.assertEquals(topAgency, firstChildAgency.parentAgency)
         Assert.assertEquals(AgencyType.TRUST_SERVICE_PROVIDER, firstChildAgency.type)
@@ -110,8 +110,8 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(0, firstChildAgency.providingDocuments.size)
 
         // Check the first grand child agency
-        Assert.assertEquals(8, firstChildAgency.childAgencies.size)
-        val firstGrandChildAgency = firstChildAgency.childAgencies[0]
+        Assert.assertEquals(8, firstChildAgency.childrenAgencies.size)
+        val firstGrandChildAgency = firstChildAgency.childrenAgencies[0]
         Assert.assertNull(firstGrandChildAgency.id)
         Assert.assertEquals(firstChildAgency, firstGrandChildAgency.parentAgency)
         Assert.assertEquals(AgencyType.TRUST_SERVICE, firstGrandChildAgency.type)
@@ -131,7 +131,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals("fr", firstGrandChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(firstGrandChildAgency, firstGrandChildAgency.providingDocuments[0].providedByAgency)
 
-        Assert.assertEquals(0, firstGrandChildAgency.childAgencies.size)
+        Assert.assertEquals(0, firstGrandChildAgency.childrenAgencies.size)
     }
 
     @Test

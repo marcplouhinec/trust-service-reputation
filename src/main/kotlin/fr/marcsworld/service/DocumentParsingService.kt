@@ -1,7 +1,7 @@
 package fr.marcsworld.service
 
-import fr.marcsworld.model.Agency
-import fr.marcsworld.model.Document
+import fr.marcsworld.model.entity.Agency
+import fr.marcsworld.model.entity.Document
 import org.springframework.core.io.Resource
 
 /**

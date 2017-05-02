@@ -1,7 +1,7 @@
 package fr.marcsworld.service.impl
 
 import fr.marcsworld.enums.DocumentType
-import fr.marcsworld.model.Document
+import fr.marcsworld.model.entity.Document
 import fr.marcsworld.repository.DocumentRepository
 import fr.marcsworld.service.DocumentService
 import org.springframework.stereotype.Service

@@ -1,7 +1,7 @@
 package fr.marcsworld.scheduled
 
 import fr.marcsworld.enums.DocumentType
-import fr.marcsworld.model.Agency
+import fr.marcsworld.model.entity.Agency
 import fr.marcsworld.service.AgencyService
 import fr.marcsworld.service.DocumentParsingService
 import fr.marcsworld.service.DocumentService

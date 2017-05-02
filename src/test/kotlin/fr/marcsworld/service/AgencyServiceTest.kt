@@ -2,9 +2,9 @@ package fr.marcsworld.service
 
 import fr.marcsworld.enums.AgencyType
 import fr.marcsworld.enums.DocumentType
-import fr.marcsworld.model.Agency
-import fr.marcsworld.model.AgencyName
-import fr.marcsworld.model.Document
+import fr.marcsworld.model.entity.Agency
+import fr.marcsworld.model.entity.AgencyName
+import fr.marcsworld.model.entity.Document
 import fr.marcsworld.repository.AgencyRepository
 import org.junit.Assert
 import org.junit.Test
@@ -64,7 +64,7 @@ open class AgencyServiceTest {
         Assert.assertEquals("en", persistedTopAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(persistedTopAgency, persistedTopAgency.providingDocuments[0].providedByAgency)
         Assert.assertEquals(true, persistedTopAgency.providingDocuments[0].isStillProvidedByAgency)
-        Assert.assertEquals(31, persistedTopAgency.childAgencies.size)
+        Assert.assertEquals(31, persistedTopAgency.childrenAgencies.size)
 
         // Check the first child agency has been created
         val persistedChildAgency = agencyRepository.findTrustServiceListOperatorByTerritoryCode("AT") ?: throw IllegalStateException()
@@ -82,7 +82,7 @@ open class AgencyServiceTest {
         Assert.assertEquals("en", persistedChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(persistedChildAgency, persistedChildAgency.providingDocuments[0].providedByAgency)
         Assert.assertEquals(true, persistedChildAgency.providingDocuments[0].isStillProvidedByAgency)
-        Assert.assertEquals(0, persistedChildAgency.childAgencies.size)
+        Assert.assertEquals(0, persistedChildAgency.childrenAgencies.size)
     }
 
     @Test
@@ -116,10 +116,10 @@ open class AgencyServiceTest {
         Assert.assertEquals("en", persistedTopAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(persistedTopAgency, persistedTopAgency.providingDocuments[0].providedByAgency)
         Assert.assertEquals(true, persistedTopAgency.providingDocuments[0].isStillProvidedByAgency)
-        Assert.assertEquals(22, persistedTopAgency.childAgencies.size)
+        Assert.assertEquals(22, persistedTopAgency.childrenAgencies.size)
 
         // Check the first child agency has been created
-        val persistedChildAgency = persistedTopAgency.childAgencies[0]
+        val persistedChildAgency = persistedTopAgency.childrenAgencies[0]
         Assert.assertEquals(persistedTopAgency, persistedChildAgency.parentAgency)
         Assert.assertEquals(AgencyType.TRUST_SERVICE_PROVIDER, persistedChildAgency.type)
         Assert.assertEquals(tsStatusListFrResource.url.toString(), persistedChildAgency.referencedByDocumentUrl)
@@ -129,10 +129,10 @@ open class AgencyServiceTest {
         Assert.assertEquals("en", persistedChildAgency.names[0].languageCode)
         Assert.assertEquals("Agence Nationale des Titres Sécurisés", persistedChildAgency.names[0].name)
         Assert.assertEquals(0, persistedChildAgency.providingDocuments.size)
-        Assert.assertEquals(8, persistedChildAgency.childAgencies.size)
+        Assert.assertEquals(8, persistedChildAgency.childrenAgencies.size)
 
         // Check the first grand child agency has been created
-        val persistedGrandChildAgency = persistedChildAgency.childAgencies[0]
+        val persistedGrandChildAgency = persistedChildAgency.childrenAgencies[0]
         Assert.assertEquals(persistedChildAgency, persistedGrandChildAgency.parentAgency)
         Assert.assertEquals(AgencyType.TRUST_SERVICE, persistedGrandChildAgency.type)
         Assert.assertEquals(tsStatusListFrResource.url.toString(), persistedGrandChildAgency.referencedByDocumentUrl)
@@ -147,7 +147,7 @@ open class AgencyServiceTest {
         Assert.assertEquals("fr", persistedGrandChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(persistedGrandChildAgency, persistedGrandChildAgency.providingDocuments[0].providedByAgency)
         Assert.assertEquals(true, persistedGrandChildAgency.providingDocuments[0].isStillProvidedByAgency)
-        Assert.assertEquals(0, persistedGrandChildAgency.childAgencies.size)
+        Assert.assertEquals(0, persistedGrandChildAgency.childrenAgencies.size)
     }
 
     @Test
@@ -186,26 +186,26 @@ open class AgencyServiceTest {
 
         // Reload the same agencies, but modify their documents
         val modifiedEuAgency = documentParsingService.parseTsStatusList(tsStatusListEuResource)
-        modifiedEuAgency.childAgencies[0].providingDocuments += Document( // Add a new document to the first child agency
+        modifiedEuAgency.childrenAgencies[0].providingDocuments += Document( // Add a new document to the first child agency
                 url = "http://example.org",
                 type = DocumentType.TS_STATUS_LIST_XML,
                 languageCode = "en",
-                providedByAgency = modifiedEuAgency.childAgencies[0]
+                providedByAgency = modifiedEuAgency.childrenAgencies[0]
         )
-        modifiedEuAgency.childAgencies[1].providingDocuments = listOf() // Remove the documents of the second child agency
-        modifiedEuAgency.childAgencies[2].providingDocuments[0].languageCode = "zz" // Modify the document of the third child agency
+        modifiedEuAgency.childrenAgencies[1].providingDocuments = listOf() // Remove the documents of the second child agency
+        modifiedEuAgency.childrenAgencies[2].providingDocuments[0].languageCode = "zz" // Modify the document of the third child agency
         agencyService.updateTrustServiceListOperatorAgency(modifiedEuAgency)
         entityManager.flush()
         entityManager.clear()
 
         // Check the database was correctly updated
         val persistedEuAgency = agencyRepository.findTrustServiceListOperatorByTerritoryCode("EU") ?: throw IllegalStateException()
-        Assert.assertEquals(2, persistedEuAgency.childAgencies[0].providingDocuments.size)
-        Assert.assertEquals("http://example.org", persistedEuAgency.childAgencies[0].providingDocuments[1].url)
-        Assert.assertEquals(1, persistedEuAgency.childAgencies[1].providingDocuments.size)
-        Assert.assertEquals(false, persistedEuAgency.childAgencies[1].providingDocuments[0].isStillProvidedByAgency)
-        Assert.assertEquals(1, persistedEuAgency.childAgencies[2].providingDocuments.size)
-        Assert.assertEquals("zz", persistedEuAgency.childAgencies[2].providingDocuments[0].languageCode)
+        Assert.assertEquals(2, persistedEuAgency.childrenAgencies[0].providingDocuments.size)
+        Assert.assertEquals("http://example.org", persistedEuAgency.childrenAgencies[0].providingDocuments[1].url)
+        Assert.assertEquals(1, persistedEuAgency.childrenAgencies[1].providingDocuments.size)
+        Assert.assertEquals(false, persistedEuAgency.childrenAgencies[1].providingDocuments[0].isStillProvidedByAgency)
+        Assert.assertEquals(1, persistedEuAgency.childrenAgencies[2].providingDocuments.size)
+        Assert.assertEquals("zz", persistedEuAgency.childrenAgencies[2].providingDocuments[0].languageCode)
 
         // Reload the same agencies again, but this time restore the original documents
         val euAgency2 = documentParsingService.parseTsStatusList(tsStatusListEuResource)
@@ -215,8 +215,8 @@ open class AgencyServiceTest {
 
         // Check the database was correctly updated
         val persistedEuAgency2 = agencyRepository.findTrustServiceListOperatorByTerritoryCode("EU") ?: throw IllegalStateException()
-        Assert.assertEquals(1, persistedEuAgency2.childAgencies[1].providingDocuments.size)
-        Assert.assertEquals(true, persistedEuAgency2.childAgencies[1].providingDocuments[0].isStillProvidedByAgency)
+        Assert.assertEquals(1, persistedEuAgency2.childrenAgencies[1].providingDocuments.size)
+        Assert.assertEquals(true, persistedEuAgency2.childrenAgencies[1].providingDocuments[0].isStillProvidedByAgency)
     }
 
     @Test
@@ -238,11 +238,11 @@ open class AgencyServiceTest {
         )
         newAgency.names = listOf(AgencyName(agency = newAgency, name = "Example", languageCode = "en"))
         newAgency.providingDocuments = listOf(Document(url = "http://www.example.com", type = DocumentType.TS_STATUS_LIST_XML, languageCode = "en", providedByAgency = newAgency))
-        modifiedEuAgency.childAgencies += newAgency
+        modifiedEuAgency.childrenAgencies += newAgency
 
-        modifiedEuAgency.childAgencies = modifiedEuAgency.childAgencies.filter { it.territoryCode != "FR" }
+        modifiedEuAgency.childrenAgencies = modifiedEuAgency.childrenAgencies.filter { it.territoryCode != "FR" }
 
-        val atAgency = modifiedEuAgency.childAgencies.findLast { it.territoryCode == "AT" }
+        val atAgency = modifiedEuAgency.childrenAgencies.findLast { it.territoryCode == "AT" }
         atAgency?.referencedByDocumentUrl = "http://www.example.net"
 
         agencyService.updateTrustServiceListOperatorAgency(modifiedEuAgency)
@@ -251,9 +251,9 @@ open class AgencyServiceTest {
 
         // Check the database was correctly updated
         val persistedEuAgency = agencyRepository.findTrustServiceListOperatorByTerritoryCode("EU") ?: throw IllegalStateException()
-        Assert.assertEquals(32, persistedEuAgency.childAgencies.size)
+        Assert.assertEquals(32, persistedEuAgency.childrenAgencies.size)
 
-        val lastChildAgency = persistedEuAgency.childAgencies[persistedEuAgency.childAgencies.size - 1]
+        val lastChildAgency = persistedEuAgency.childrenAgencies[persistedEuAgency.childrenAgencies.size - 1]
         Assert.assertEquals("ZZ", lastChildAgency.territoryCode)
         Assert.assertEquals("http://www.example.org", lastChildAgency.referencedByDocumentUrl)
         Assert.assertEquals(AgencyType.TRUST_SERVICE_LIST_OPERATOR, lastChildAgency.type)
@@ -266,10 +266,10 @@ open class AgencyServiceTest {
         Assert.assertEquals("http://www.example.com", lastChildAgency.providingDocuments[0].url)
         Assert.assertEquals(DocumentType.TS_STATUS_LIST_XML, lastChildAgency.providingDocuments[0].type)
 
-        val frChildAgency = persistedEuAgency.childAgencies.findLast { it.territoryCode == "FR" }
+        val frChildAgency = persistedEuAgency.childrenAgencies.findLast { it.territoryCode == "FR" }
         Assert.assertEquals(false, frChildAgency?.isStillReferencedByDocument)
 
-        val atChildAgency = persistedEuAgency.childAgencies.findLast { it.territoryCode == "AT" }
+        val atChildAgency = persistedEuAgency.childrenAgencies.findLast { it.territoryCode == "AT" }
         Assert.assertEquals("http://www.example.net", atChildAgency?.referencedByDocumentUrl)
 
         // Reload the same agencies again, but this time restore the original documents
@@ -280,9 +280,9 @@ open class AgencyServiceTest {
 
         // Check the database was correctly updated
         val persistedEuAgency2 = agencyRepository.findTrustServiceListOperatorByTerritoryCode("EU") ?: throw IllegalStateException()
-        Assert.assertEquals(32, persistedEuAgency2.childAgencies.size)
+        Assert.assertEquals(32, persistedEuAgency2.childrenAgencies.size)
 
-        val frChildAgency2 = persistedEuAgency2.childAgencies.findLast { it.territoryCode == "FR" }
+        val frChildAgency2 = persistedEuAgency2.childrenAgencies.findLast { it.territoryCode == "FR" }
         Assert.assertEquals(true, frChildAgency2?.isStillReferencedByDocument)
     }
 }
