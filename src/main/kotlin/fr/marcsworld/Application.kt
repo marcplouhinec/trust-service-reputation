@@ -15,6 +15,12 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar
 @EnableScheduling
 class Application : SchedulingConfigurer {
 
+    companion object {
+        @JvmStatic fun main(args: Array<String>) {
+            SpringApplication.run(Application::class.java, *args)
+        }
+    }
+
     override fun configureTasks(taskRegistrar: ScheduledTaskRegistrar?) {
         taskRegistrar?.setScheduler(taskScheduler())
     }
@@ -39,8 +45,6 @@ class Application : SchedulingConfigurer {
         taskExecutor.setAllowCoreThreadTimeOut(true)
         return taskExecutor
     }
-}
 
-fun main(args: Array<String>) {
-    SpringApplication.run(Application::class.java, *args)
+
 }

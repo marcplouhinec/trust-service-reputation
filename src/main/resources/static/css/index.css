@@ -57,57 +57,61 @@ table.agency-names > tbody > tr > th {
 }
 
 /*
- * Agency block sub-sections
+ * Agency children
  */
 
-.agency-subsections-wrapper {
-    display: flex;
-    align-items: stretch;
+.agency-children {
+    padding-left: 20px;
 }
 
-.agency-subsections-tree {
+.agency-child {
+    display: flex;
+}
+
+.agency-child-tree {
     display: flex;
     flex-direction: column;
+    width: 20px;
 }
 
-.agency-subsections-tree-part1, .agency-subsections-tree-part2, .agency-subsections-tree-part3, .agency-subsections-tree-part4 {
-    margin-left: 20px;
+.agency-child-node {
+    display: flex;
     flex: 1;
-    width: 20px
+    padding-top: 24px;
 }
 
-.agency-subsections-tree-part1, .agency-subsections-tree-part3 {
-    border-left: 1px dotted black;
-    border-bottom: 1px dotted black;
+.agency-child-tree-vh {
+    width: 100%;
+    height: 36px;
+    border-left: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
 }
 
-.agency-subsections-tree-part2 {
-    border-left: 1px dotted black;
+.agency-child-tree-v {
+    width: 100%;
+    flex: 1;
+    border-left: 1px solid #ccc;
 }
 
-.agency-subsections {
-    display: flex;
-    flex-direction: column;
-}
-
-.agency-subsections-documents-wrapper, .agency-subsections-sub-agencies-wrapper {
+.documents, .sub-agencies {
     display: flex;
     align-items: center;
-    flex: 1;
-}
 
-.agency-subsections-documents, .agency-subsections-sub-agencies {
-    margin-top: 16px;
-    margin-bottom: 16px;
+    border-radius: 4px;
+
     padding: 4px;
 }
 
-.agency-subsections-documents {
-    border: 1px solid black;
-    border-radius: 4px;
+.documents {
+    border: 1px solid #5c49a0;
+    background-color: #aea5d4;
 }
 
-.agency-subsections-sub-agencies {
-    border: 1px solid black;
-    border-radius: 4px;
+.sub-agencies {
+    border: 1px solid #058149;
+    background-color: #abcf99;
+}
+
+.documents > label, .sub-agencies > label {
+    width: 130px;
 }
