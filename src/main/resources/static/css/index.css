@@ -10,39 +10,48 @@ body {
 }
 
 /*
- * Agency block
+ * Agency and document block
  */
 
-.agency {
-    width: 450px;
-
-    background-color: #FFFFC8;
-    border: 1px solid #FDBE2D;
+.agency, .document {
+    width: 550px;
     border-radius: 4px;
-
     word-wrap: break-word;
 }
 
-.agency-header {
+.agency {
+    background-color: #FFFFC8;
+    border: 1px solid #FDBE2D;
+}
+
+.document {
+    border: 1px solid #5c49a0;
+    background-color: #aea5d4;
+}
+
+.agency-header, .document-header {
     padding: 8px;
     border-bottom: 1px solid #FDBE2D;
 }
 
-table.agency-properties {
-    table-layout: fixed;
+.document-header > a {
+    color: black;
+}
 
+table.agency-properties, table.document-properties {
+    table-layout: fixed;
     font-size: 11px;
 }
 
-table.agency-properties > tbody > tr > th {
-    width: 90px;
+table.agency-properties > tbody > tr > th, table.document-properties > tbody > tr > th {
+    width: 110px;
     padding: 2px;
 
     text-align: left;
     vertical-align: top;
 }
 
-table.agency-properties > tbody > tr > td {
+table.agency-properties > tbody > tr > td, table.document-properties > tbody > tr > td {
     padding: 2px;
 }
 

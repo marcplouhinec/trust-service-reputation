@@ -49,12 +49,64 @@
         <div class="agency-child" th:if="${!agencyNode.documentNodes.isEmpty()}">
             <div class="agency-child-tree">
                 <div class="agency-child-tree-vh"></div>
-                <div class="agency-child-tree-v"></div>
+                <div class="agency-child-tree-v" th:if="${!agencyNode.childrenAgencyNodes.isEmpty()}"></div>
             </div>
             <div class="agency-child-node">
                 <div class="documents">
                     <label>Documents (<span th:text="${agencyNode.documentNodes.size()}">2</span>)</label>
                     <button>+</button>
+                </div>
+
+                <div class="agency-children" th:each="documentNode, iterDocumentNode : ${agencyNode.documentNodes}">
+                    <div class="agency-child">
+                        <div class="agency-child-tree">
+                            <div class="agency-child-tree-vh"></div>
+                            <div th:if="${!iterDocumentNode.last}" class="agency-child-tree-v"></div>
+                        </div>
+                        <div class="agency-child-node">
+                            <div class="document">
+                                <div class="document-header">
+                                    <a th:text="${documentNode.document.url}" th:href="${documentNode.document.url}">
+                                        http://www.example.org/document.xml
+                                    </a>
+                                </div>
+                                <table class="document-properties">
+                                    <tr>
+                                        <th>Type</th>
+                                        <td th:text="${documentNode.document.type}">TS_STATUS_LIST_XML</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Language code</th>
+                                        <td th:text="${documentNode.document.languageCode}">
+                                            https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status</th>
+                                        <td th:if="${documentNode.document.isStillProvidedByAgency() ? 'Active' : 'Inactive'}">
+                                            Active
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Availability</th>
+                                        <td th:text="${documentNode.availabilityPercentage + '%'}">100%</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Validity</th>
+                                        <td th:text="${documentNode.validityPercentage + '%'}">100%</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Current size</th>
+                                        <td th:text="${documentNode.currentSize + ' bytes'}">10 bytes</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Average DL speed</th>
+                                        <td th:text="${documentNode.averageDownloadSpeed + ' bytes/second'}">10 bytes/second</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

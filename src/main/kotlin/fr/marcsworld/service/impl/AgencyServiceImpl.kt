@@ -3,6 +3,7 @@ package fr.marcsworld.service.impl
 import fr.marcsworld.enums.AgencyType
 import fr.marcsworld.enums.DocumentType
 import fr.marcsworld.model.dto.AgencyNode
+import fr.marcsworld.model.dto.DocumentNode
 import fr.marcsworld.model.entity.Agency
 import fr.marcsworld.model.entity.AgencyName
 import fr.marcsworld.model.entity.Document
@@ -46,10 +47,12 @@ class AgencyServiceImpl(
         val agencies = agencyRepository.findAll()
 
         // Find all documents with statistical information
-        // TODO
+        val documents = documentRepository.findAll()
+        // TODO find statistical information when available
 
         // Build the tree
         val agenciesByParent = agencies.groupBy(Agency::parentAgency)
+        val documentsByAgency = documents.groupBy(Document::providedByAgency)
         val rootAgencies = agenciesByParent[null] ?: throw IllegalStateException("Unable to find the root agency.")
         val rootAgency = rootAgencies[0]
 
@@ -70,12 +73,16 @@ class AgencyServiceImpl(
                 else -> false
             }
 
+            // Build the document nodes
+            val agencyDocuments = documentsByAgency[currentAgency] ?: listOf()
+            val documentNodes = agencyDocuments.map { document -> DocumentNode(document, 100F, 100F, 0, 0F) }
+
             // Build the children agency nodes
             val childrenAgencies = agenciesByParent[currentAgency]
             val childrenAgencyNodes = (childrenAgencies as? List)?.map(::buildAgencyNode) ?: listOf()
 
             // Build the agency node
-            return AgencyNode(currentAgency, mainAgencyName, active, listOf(), childrenAgencyNodes)
+            return AgencyNode(currentAgency, mainAgencyName, active, documentNodes, childrenAgencyNodes)
         }
         return buildAgencyNode(rootAgency)
     }

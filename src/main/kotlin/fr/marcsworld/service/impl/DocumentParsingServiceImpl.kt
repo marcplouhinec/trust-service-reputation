@@ -123,7 +123,9 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                 tsAgency.names = evalXPathToAgencyNames(it, "./v2:ServiceInformation/v2:ServiceName/v2:Name", tsAgency)
 
                 val uriNodes = evalXPathToNodes(it, "./v2:ServiceInformation/v2:TSPServiceDefinitionURI/v2:URI")
-                tsAgency.providingDocuments = uriNodes.map {
+                val uriNodes2 = evalXPathToNodes(it, "./v2:ServiceInformation/v2:SchemeServiceDefinitionURI/v2:URI")
+                val allUriNodes = uriNodes + uriNodes2
+                tsAgency.providingDocuments = allUriNodes.map {
                     Document(
                             url = it.textContent,
                             type = DocumentType.TSP_SERVICE_DEFINITION,
