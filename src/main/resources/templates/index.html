@@ -8,7 +8,10 @@
 <body>
 
 <!--/*@thymesVar id="rootAgencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
-<div th:include="fragments/agency :: agency (agencyNode=${rootAgencyNode})"></div>
+<th:block th:include="fragment/agency :: agency (agencyNode=${rootAgencyNode})"/>
 
+<script th:src="@{/vendor/jquery-3.2.1.min.js}"></script>
+<script th:src="@{/script/treeController.js}"></script>
+<script th:src="@{/script/mainController.js}"></script>
 </body>
 </html>

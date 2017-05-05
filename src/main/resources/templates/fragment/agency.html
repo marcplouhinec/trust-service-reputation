@@ -7,13 +7,13 @@
 </head>
 <body>
 
-<div class="agency-wrapper" th:fragment="agency (agencyNode)">
+<th:block th:fragment="agency (agencyNode)">
     <!--/*@thymesVar id="agencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
-    <div class="agency">
-        <div class="agency-header" th:text="${agencyNode.mainAgencyName.name}">
+    <div class="tree-node tree-node-agency">
+        <div class="tree-node-header" th:text="${agencyNode.mainAgencyName.name}">
             European Commission
         </div>
-        <table class="agency-properties">
+        <table class="tree-node-properties">
             <tr>
                 <th>Type</th>
                 <td th:text="${agencyNode.agency.type}">TRUST_SERVICE_LIST_OPERATOR</td>
@@ -45,32 +45,30 @@
             </tr>
         </table>
     </div>
-    <div class="agency-children">
-        <div class="agency-child" th:if="${!agencyNode.documentNodes.isEmpty()}">
-            <div class="agency-child-tree">
-                <div class="agency-child-tree-vh"></div>
-                <div class="agency-child-tree-v" th:if="${!agencyNode.childrenAgencyNodes.isEmpty()}"></div>
+    <div class="tree-sub-nodes">
+        <div class="tree-sub-node-with-branches" th:if="${!agencyNode.documentNodes.isEmpty()}">
+            <div class="tree-branches">
+                <div class="tree-branch-vh"></div>
+                <div class="tree-branch-v" th:if="${!agencyNode.childrenAgencyNodes.isEmpty()}"></div>
             </div>
-            <div class="agency-child-node">
-                <div class="documents">
+            <div class="tree-sub-node-wrapper">
+                <div class="tree-node expandable-tree-node expandable-tree-node-documents">
                     <label>Documents (<span th:text="${agencyNode.documentNodes.size()}">2</span>)</label>
                     <button>+</button>
                 </div>
 
-                <div class="agency-children" th:each="documentNode, iterDocumentNode : ${agencyNode.documentNodes}">
-                    <div class="agency-child">
-                        <div class="agency-child-tree">
-                            <div class="agency-child-tree-vh"></div>
-                            <div th:if="${!iterDocumentNode.last}" class="agency-child-tree-v"></div>
+                <div class="tree-sub-nodes" th:each="documentNode, iterDocumentNode : ${agencyNode.documentNodes}">
+                    <div class="tree-sub-node-with-branches">
+                        <div class="tree-branches">
+                            <div class="tree-branch-vh"></div>
+                            <div th:if="${!iterDocumentNode.last}" class="tree-branch-v"></div>
                         </div>
-                        <div class="agency-child-node">
-                            <div class="document">
-                                <div class="document-header">
-                                    <a th:text="${documentNode.document.url}" th:href="${documentNode.document.url}">
-                                        http://www.example.org/document.xml
-                                    </a>
-                                </div>
-                                <table class="document-properties">
+                        <div class="tree-sub-node-wrapper">
+                            <div class="tree-node tree-node-document">
+                                <a class="tree-node-header" th:text="${documentNode.document.url}" th:href="${documentNode.document.url}">
+                                    http://www.example.org/document.xml
+                                </a>
+                                <table class="tree-node-properties">
                                     <tr>
                                         <th>Type</th>
                                         <td th:text="${documentNode.document.type}">TS_STATUS_LIST_XML</td>
@@ -110,31 +108,31 @@
                 </div>
             </div>
         </div>
-        <div class="agency-child" th:if="${!agencyNode.childrenAgencyNodes.isEmpty()}">
-            <div class="agency-child-tree">
-                <div class="agency-child-tree-vh"></div>
+        <div class="tree-sub-node-with-branches" th:if="${!agencyNode.childrenAgencyNodes.isEmpty()}">
+            <div class="tree-branches">
+                <div class="tree-branch-vh"></div>
             </div>
-            <div class="agency-child-node">
-                <div class="sub-agencies">
+            <div class="tree-sub-node-wrapper">
+                <div class="tree-node expandable-tree-node expandable-tree-node-sub-agencies">
                     <label>Sub-agencies (<span th:text="${agencyNode.childrenAgencyNodes.size()}">5</span>)</label>
                     <button>+</button>
                 </div>
 
-                <div class="agency-children" th:each="childAgencyNode, iterChildAgencyNode : ${agencyNode.childrenAgencyNodes}">
-                    <div class="agency-child">
-                        <div class="agency-child-tree">
-                            <div class="agency-child-tree-vh"></div>
-                            <div th:if="${!iterChildAgencyNode.last}" class="agency-child-tree-v"></div>
+                <div class="tree-sub-nodes" th:each="childAgencyNode, iterChildAgencyNode : ${agencyNode.childrenAgencyNodes}">
+                    <div class="tree-sub-node-with-branches">
+                        <div class="tree-branches">
+                            <div class="tree-branch-vh"></div>
+                            <div th:if="${!iterChildAgencyNode.last}" class="tree-branch-v"></div>
                         </div>
-                        <div class="agency-child-node">
-                            <div th:include="fragments/agency :: agency (agencyNode=${childAgencyNode})"></div>
+                        <div class="tree-sub-node-wrapper">
+                            <th:block th:include="fragment/agency :: agency (agencyNode=${childAgencyNode})"/>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</th:block>
 
 </body>
 </html>

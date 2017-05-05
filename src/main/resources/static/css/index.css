@@ -10,40 +10,30 @@ body {
 }
 
 /*
- * Agency and document block
+ * General tree node
  */
 
-.agency, .document {
-    width: 550px;
+.tree-node {
     border-radius: 4px;
+    border: 1px solid;
     word-wrap: break-word;
 }
 
-.agency {
-    background-color: #FFFFC8;
-    border: 1px solid #FDBE2D;
-}
-
-.document {
-    border: 1px solid #5c49a0;
-    background-color: #aea5d4;
-}
-
-.agency-header, .document-header {
-    padding: 8px;
-    border-bottom: 1px solid #FDBE2D;
-}
-
-.document-header > a {
+.tree-node-header {
+    display: block;
     color: black;
+
+    padding: 8px;
+    border-bottom: 1px solid;
+    border-bottom-color: inherit;
 }
 
-table.agency-properties, table.document-properties {
+table.tree-node-properties {
     table-layout: fixed;
     font-size: 11px;
 }
 
-table.agency-properties > tbody > tr > th, table.document-properties > tbody > tr > th {
+table.tree-node-properties > tbody > tr > th {
     width: 110px;
     padding: 2px;
 
@@ -51,8 +41,70 @@ table.agency-properties > tbody > tr > th, table.document-properties > tbody > t
     vertical-align: top;
 }
 
-table.agency-properties > tbody > tr > td, table.document-properties > tbody > tr > td {
+table.tree-node-properties > tbody > tr > td {
     padding: 2px;
+}
+
+.expandable-tree-node {
+    display: flex;
+    align-items: center;
+    width: 172px;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.expandable-tree-node > label {
+    flex: 1;
+}
+
+/*
+ * General tree children
+ */
+
+.tree-sub-nodes {
+    display: flex;
+    flex-direction: column;
+    padding-left: 20px;
+}
+
+.tree-sub-node-with-branches {
+    display: flex;
+}
+
+.tree-branches {
+    display: flex;
+    flex-direction: column;
+    width: 20px;
+}
+
+.tree-branch-vh {
+    width: 100%;
+    height: 36px;
+    border-left: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+
+.tree-branch-v {
+    width: 100%;
+    flex: 1;
+    border-left: 1px solid #ccc;
+}
+
+.tree-sub-node-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding-top: 24px;
+}
+
+/*
+ * Agency
+ */
+
+.tree-node-agency {
+    width: 550px;
+    background-color: #FFFFC8;
+    border-color: #FDBE2D;
 }
 
 table.agency-names {
@@ -65,65 +117,26 @@ table.agency-names > tbody > tr > th {
     text-align: left;
 }
 
-/*
- * Agency children
- */
-
-.agency-children {
-    padding-left: 20px;
+button.show-agency-names {
+    width: 160px;
 }
 
-.agency-child {
-    display: flex;
-}
-
-.agency-child-tree {
-    display: flex;
-    flex-direction: column;
-    width: 20px;
-}
-
-.agency-child-node {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    padding-top: 24px;
-}
-
-.agency-child-tree-vh {
-    width: 100%;
-    height: 36px;
-    border-left: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-}
-
-.agency-child-tree-v {
-    width: 100%;
-    flex: 1;
-    border-left: 1px solid #ccc;
-}
-
-.documents, .sub-agencies {
-    display: flex;
-    align-items: center;
-
-    width: 172px;
-
-    border-radius: 4px;
-
-    padding: 4px;
-}
-
-.documents {
-    border: 1px solid #5c49a0;
-    background-color: #aea5d4;
-}
-
-.sub-agencies {
-    border: 1px solid #058149;
+.expandable-tree-node-sub-agencies {
+    border-color: #058149;
     background-color: #abcf99;
 }
 
-.documents > label, .sub-agencies > label {
-    width: 130px;
+/*
+ * Document
+ */
+
+.tree-node-document {
+    width: 550px;
+    border-color: #5c49a0;
+    background-color: #aea5d4;
+}
+
+.expandable-tree-node-documents {
+    border-color: #5c49a0;
+    background-color: #aea5d4;
 }
