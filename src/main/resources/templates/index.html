@@ -7,8 +7,19 @@
 </head>
 <body>
 
-<!--/*@thymesVar id="rootAgencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
-<th:block th:include="fragment/agency :: agency (agencyNode=${rootAgencyNode})"/>
+<div id="header">
+    Trust Service Reputation
+</div>
+
+<div id="body-content">
+    <!--/*@thymesVar id="rootAgencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
+    <th:block th:include="fragment/agency :: agency (agencyNode=${rootAgencyNode})"/>
+</div>
+
+<div id="footer">
+    Any question? Want an extended access to our database? or automatic notifications?
+    Please&nbsp;<a href="mailto:m_plouhinec@yahoo.fr">contact us</a>.
+</div>
 
 <script th:src="@{/vendor/jquery-3.2.1.min.js}"></script>
 <script th:src="@{/script/treeController.js}"></script>
