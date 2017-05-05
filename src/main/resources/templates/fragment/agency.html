@@ -10,8 +10,18 @@
 <th:block th:fragment="agency (agencyNode)">
     <!--/*@thymesVar id="agencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
     <div class="tree-node tree-node-agency">
-        <div class="tree-node-header" th:text="${agencyNode.mainAgencyName.name}">
-            European Commission
+        <div class="tree-node-header">
+            <div class="tree-node-header-name">
+                <th:block th:if="${agencyNode.agency.territoryCode}">
+                    [<span th:text="${agencyNode.agency.territoryCode}">EU</span>]
+                </th:block>
+                <span th:text="${agencyNode.mainAgencyName.name}">
+                    European Commission
+                </span>
+            </div>
+            <div class="tree-node-header-status">
+                <span th:text="${agencyNode.active ? '[active]' : '[inactive]'}">[active]</span>
+            </div>
         </div>
         <table class="tree-node-properties">
             <tr>
@@ -23,14 +33,6 @@
                 <td th:text="${agencyNode.agency.referencedByDocumentUrl}">
                     https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml
                 </td>
-            </tr>
-            <tr>
-                <th>Status</th>
-                <td th:text="${agencyNode.active ? 'Active' : 'Inactive'}">Active</td>
-            </tr>
-            <tr th:if="${agencyNode.agency.territoryCode}">
-                <th>Territory</th>
-                <td th:text="${agencyNode.agency.territoryCode}">EU</td>
             </tr>
             <tr>
                 <th>Names</th>
@@ -65,41 +67,40 @@
                         </div>
                         <div class="tree-sub-node-wrapper">
                             <div class="tree-node tree-node-document">
-                                <a class="tree-node-header" th:text="${documentNode.document.url}" th:href="${documentNode.document.url}">
-                                    http://www.example.org/document.xml
-                                </a>
+                                <div class="tree-node-header">
+                                    <a class="tree-node-header-name"  th:href="${documentNode.document.url}">
+                                        [<span th:text="${documentNode.document.languageCode}">en</span>]
+                                        <span th:text="${documentNode.document.url}">
+                                            http://www.example.org/document.xml
+                                        </span>
+                                    </a>
+                                    <div class="tree-node-header-status">
+                                        <span th:text="${documentNode.document.isStillProvidedByAgency() ? '[active]' : '[inactive]'}">[active]</span>
+                                    </div>
+                                </div>
                                 <table class="tree-node-properties">
                                     <tr>
                                         <th>Type</th>
                                         <td th:text="${documentNode.document.type}">TS_STATUS_LIST_XML</td>
                                     </tr>
                                     <tr>
-                                        <th>Language code</th>
-                                        <td th:text="${documentNode.document.languageCode}">
-                                            https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml
+                                        <th>Statistics</th>
+                                        <td>
+                                            <table class="document-stats">
+                                                <tr>
+                                                    <th>Availability</th>
+                                                    <th>Validity rate</th>
+                                                    <th>Size</th>
+                                                    <th>Avg. DL. speed</th>
+                                                </tr>
+                                                <tr>
+                                                    <td th:text="${documentNode.availabilityPercentage + '%'}">100%</td>
+                                                    <td th:text="${documentNode.validityPercentage + '%'}">100%</td>
+                                                    <td th:text="${documentNode.currentSize / 1024.0 + 'kB'}">10kB</td>
+                                                    <td th:text="${documentNode.averageDownloadSpeed / 1024 + 'kB/sec'}">28 kB/sec</td>
+                                                </tr>
+                                            </table>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Status</th>
-                                        <td th:if="${documentNode.document.isStillProvidedByAgency() ? 'Active' : 'Inactive'}">
-                                            Active
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Availability</th>
-                                        <td th:text="${documentNode.availabilityPercentage + '%'}">100%</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Validity</th>
-                                        <td th:text="${documentNode.validityPercentage + '%'}">100%</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Current size</th>
-                                        <td th:text="${documentNode.currentSize + ' bytes'}">10 bytes</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Average DL speed</th>
-                                        <td th:text="${documentNode.averageDownloadSpeed + ' bytes/second'}">10 bytes/second</td>
                                     </tr>
                                 </table>
                             </div>

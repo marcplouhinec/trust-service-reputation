@@ -20,12 +20,22 @@ body {
 }
 
 .tree-node-header {
-    display: block;
-    color: black;
+    display: flex;
 
     padding: 8px;
     border-bottom: 1px solid;
     border-bottom-color: inherit;
+}
+
+.tree-node-header-name {
+    display: block;
+    flex: 1;
+    color: black;
+}
+
+.tree-node-header-status {
+    font-weight: bold;
+    padding-left: 8px;
 }
 
 table.tree-node-properties {
@@ -34,7 +44,7 @@ table.tree-node-properties {
 }
 
 table.tree-node-properties > tbody > tr > th {
-    width: 110px;
+    width: 90px;
     padding: 2px;
 
     text-align: left;
@@ -139,4 +149,15 @@ button.show-agency-names {
 .expandable-tree-node-documents {
     border-color: #5c49a0;
     background-color: #aea5d4;
+}
+
+table.document-stats {
+    table-layout: fixed;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table.document-stats > tbody > tr > th, table.document-stats > tbody > tr > td {
+    border: 1px solid #5c49a0;
+    text-align: center;
 }
