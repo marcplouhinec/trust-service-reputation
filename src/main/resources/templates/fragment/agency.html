@@ -9,7 +9,7 @@
 
 <th:block th:fragment="agency (agencyNode)">
     <!--/*@thymesVar id="agencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
-    <div class="tree-node tree-node-agency">
+    <div class="tree-node tree-node-agency" th:classappend="${!agencyNode.active}? 'inactive-tree-node'">
         <div class="tree-node-header">
             <div class="tree-node-header-name">
                 <th:block th:if="${agencyNode.agency.territoryCode}">
@@ -30,8 +30,10 @@
             </tr>
             <tr th:if="${agencyNode.agency.referencedByDocumentUrl}">
                 <th>Referenced by</th>
-                <td th:text="${agencyNode.agency.referencedByDocumentUrl}">
-                    https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml
+                <td>
+                    <a target="_blank" th:href="${agencyNode.agency.referencedByDocumentUrl}" th:text="${agencyNode.agency.referencedByDocumentUrl}">
+                        https://ec.europa.eu/information_society/policy/esignature/trusted-list/tl-mp.xml
+                    </a>
                 </td>
             </tr>
             <tr>
@@ -56,7 +58,7 @@
             <div class="tree-sub-node-wrapper">
                 <div class="tree-node expandable-tree-node expandable-tree-node-documents">
                     <label>Documents (<span th:text="${agencyNode.documentNodes.size()}">2</span>)</label>
-                    <button>+</button>
+                    <button>-</button>
                 </div>
 
                 <div class="tree-sub-nodes" th:each="documentNode, iterDocumentNode : ${agencyNode.documentNodes}">
@@ -66,9 +68,9 @@
                             <div th:if="${!iterDocumentNode.last}" class="tree-branch-v"></div>
                         </div>
                         <div class="tree-sub-node-wrapper">
-                            <div class="tree-node tree-node-document">
+                            <div class="tree-node tree-node-document" th:classappend="${!documentNode.document.isStillProvidedByAgency()}? 'inactive-tree-node'">
                                 <div class="tree-node-header">
-                                    <a class="tree-node-header-name"  th:href="${documentNode.document.url}">
+                                    <a class="tree-node-header-name" target="_blank" th:href="${documentNode.document.url}">
                                         [<span th:text="${documentNode.document.languageCode}">en</span>]
                                         <span th:text="${documentNode.document.url}">
                                             http://www.example.org/document.xml
@@ -116,7 +118,7 @@
             <div class="tree-sub-node-wrapper">
                 <div class="tree-node expandable-tree-node expandable-tree-node-sub-agencies">
                     <label>Sub-agencies (<span th:text="${agencyNode.childrenAgencyNodes.size()}">5</span>)</label>
-                    <button>+</button>
+                    <button>-</button>
                 </div>
 
                 <div class="tree-sub-nodes" th:each="childAgencyNode, iterChildAgencyNode : ${agencyNode.childrenAgencyNodes}">

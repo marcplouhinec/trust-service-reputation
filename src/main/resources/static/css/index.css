@@ -19,6 +19,10 @@ body {
     word-wrap: break-word;
 }
 
+.inactive-tree-node {
+    opacity: 0.4;
+}
+
 .tree-node-header {
     display: flex;
 
@@ -112,7 +116,7 @@ table.tree-node-properties > tbody > tr > td {
  */
 
 .tree-node-agency {
-    width: 550px;
+    width: 600px;
     background-color: #FFFFC8;
     border-color: #FDBE2D;
 }
@@ -141,7 +145,7 @@ button.show-agency-names {
  */
 
 .tree-node-document {
-    width: 550px;
+    width: 700px;
     border-color: #5c49a0;
     background-color: #aea5d4;
 }
