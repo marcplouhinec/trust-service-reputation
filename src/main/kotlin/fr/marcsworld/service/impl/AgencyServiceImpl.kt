@@ -89,7 +89,7 @@ class AgencyServiceImpl(
 
     @Transactional
     override fun updateTrustServiceListOperatorAgency(tsloAgency: Agency) {
-        LOGGER.info("Update the TrustServiceListOperatorAgency for the territory: {}.", tsloAgency.territoryCode)
+        LOGGER.debug("Update the TrustServiceListOperatorAgency for the territory: {}.", tsloAgency.territoryCode)
 
         // Find the existing agency in the database
         val territoryCode = tsloAgency.territoryCode ?: throw IllegalArgumentException("Missing territoryCode.")
@@ -140,7 +140,7 @@ class AgencyServiceImpl(
 
     @Transactional
     override fun updateTrustServiceAgencyDocuments(tsAgency: Agency, certificateRevocationListDocuments: List<Document>) {
-        LOGGER.info("Update the certificateRevocationListDocuments for the agency: {}.", tsAgency.names.joinToString { "[${it.languageCode}]${it.name}" })
+        LOGGER.debug("Update the certificateRevocationListDocuments for the agency: {}.", tsAgency.names.joinToString { "[${it.languageCode}]${it.name}" })
         updateProvidingDocuments(certificateRevocationListDocuments, tsAgency, markNotProvidedAnymoreDocuments = true, handleCertificateRevocationList = true)
     }
 

@@ -7,14 +7,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 
 /**
- * Expose some properties via JMX related to document parsing tasks.
+ * Expose some properties via JMX related to task executors.
  *
  * @author Marc Plouhinec
  */
 @Component
 @ManagedResource
-open class DocumentParsingMBean(
-        val documentParsingTaskExecutor: TaskExecutor
+open class TaskExecutorStatusMBean(
+        val documentParsingTaskExecutor: TaskExecutor,
+        val documentCheckingTaskExecutor: TaskExecutor
 ) {
 
     /**
@@ -23,5 +24,13 @@ open class DocumentParsingMBean(
     @ManagedAttribute
     fun getDocumentParsingTaskExecutorQueueSize(): Int {
         return (documentParsingTaskExecutor as? ThreadPoolTaskExecutor)?.threadPoolExecutor?.queue?.size ?: -1
+    }
+
+    /**
+     * @return Current size of the queue of the [ThreadPoolTaskExecutor] responsible for executing checking document tasks.
+     */
+    @ManagedAttribute
+    fun getDocumentCheckingTaskExecutorQueueSize(): Int {
+        return (documentCheckingTaskExecutor as? ThreadPoolTaskExecutor)?.threadPoolExecutor?.queue?.size ?: -1
     }
 }

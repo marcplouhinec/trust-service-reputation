@@ -6,26 +6,21 @@ import fr.marcsworld.model.entity.Agency
 import fr.marcsworld.model.entity.AgencyName
 import fr.marcsworld.model.entity.Document
 import fr.marcsworld.service.DocumentParsingService
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.conn.ssl.NoopHostnameVerifier
-import org.apache.http.impl.client.HttpClients
+import fr.marcsworld.utils.ResourceDownloader
 import org.apache.pdfbox.io.RandomAccessBuffer
 import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
-import org.springframework.core.io.UrlResource
 import org.springframework.stereotype.Service
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.SAXParseException
 import java.io.IOException
+import java.net.URI
+import java.net.URL
 import java.nio.charset.Charset
-import java.security.cert.X509Certificate
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import javax.xml.XMLConstants
 import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilderFactory
@@ -45,14 +40,18 @@ class DocumentParsingServiceImpl : DocumentParsingService {
     }
 
     private val namespaceContext = TsStatusListNamespaceContext()
-    private val noopX509TrustManager = NoopX509TrustManager()
 
     override fun parseTsStatusList(resource: Resource): Agency {
         val resourceUrl = resource.url.toString()
-        LOGGER.info("Parse the trust service status list: {}", resourceUrl)
+        LOGGER.debug("Parse the trust service status list: {}", resourceUrl)
 
         // Parse the XML file in memory
-        val documentByteArray = downloadDocument(resource)
+        val documentByteArray = try {
+            ResourceDownloader.downloadResource(resource)
+        } catch (e: Exception) {
+            LOGGER.warn("Unable to download the document: $resourceUrl", e)
+            throw e
+        }
         val documentBuilderFactory = DocumentBuilderFactory.newInstance()
         documentBuilderFactory.isNamespaceAware = true
         val documentBuilder = documentBuilderFactory.newDocumentBuilder()
@@ -114,27 +113,31 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
             // Parse the children TRUST_SERVICE agencies
             val tspServiceNode = evalXPathToNodes(it, "./v2:TSPServices/v2:TSPService")
-            tspAgency.childrenAgencies = tspServiceNode.map {
-                val tsAgency = Agency(
-                        parentAgency = tspAgency,
-                        type = AgencyType.TRUST_SERVICE,
-                        referencedByDocumentUrl = resourceUrl
-                )
-                tsAgency.names = evalXPathToAgencyNames(it, "./v2:ServiceInformation/v2:ServiceName/v2:Name", tsAgency)
+            tspAgency.childrenAgencies = tspServiceNode
+                    .map {
+                        val tsAgency = Agency(
+                                parentAgency = tspAgency,
+                                type = AgencyType.TRUST_SERVICE,
+                                referencedByDocumentUrl = resourceUrl
+                        )
+                        tsAgency.names = evalXPathToAgencyNames(it, "./v2:ServiceInformation/v2:ServiceName/v2:Name", tsAgency)
 
-                val uriNodes = evalXPathToNodes(it, "./v2:ServiceInformation/v2:TSPServiceDefinitionURI/v2:URI")
-                val uriNodes2 = evalXPathToNodes(it, "./v2:ServiceInformation/v2:SchemeServiceDefinitionURI/v2:URI")
-                val allUriNodes = uriNodes + uriNodes2
-                tsAgency.providingDocuments = allUriNodes.map {
-                    Document(
-                            url = it.textContent,
-                            type = DocumentType.TSP_SERVICE_DEFINITION,
-                            languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
-                            providedByAgency = tsAgency)
-                }
+                        val uriNodes = evalXPathToNodes(it, "./v2:ServiceInformation/v2:TSPServiceDefinitionURI/v2:URI")
+                        val uriNodes2 = evalXPathToNodes(it, "./v2:ServiceInformation/v2:SchemeServiceDefinitionURI/v2:URI")
+                        val allUriNodes = uriNodes + uriNodes2
+                        tsAgency.providingDocuments = allUriNodes.map {
+                            Document(
+                                    url = it.textContent,
+                                    type = DocumentType.TSP_SERVICE_DEFINITION,
+                                    languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
+                                    providedByAgency = tsAgency)
+                        }
 
-                tsAgency
-            }
+                        tsAgency
+                    }
+                    .filter { tsAgency ->
+                        tsAgency.names.isNotEmpty()
+                    }
 
             tspAgency
         }
@@ -145,9 +148,14 @@ class DocumentParsingServiceImpl : DocumentParsingService {
     }
 
     override fun parseTspServiceDefinition(resource: Resource, providerAgency: Agency): List<Document> {
-        LOGGER.info("Parse the TSP service definition: {}", resource.url)
+        LOGGER.debug("Parse the TSP service definition: {}", resource.url)
 
-        val documentByteArray = downloadDocument(resource)
+        val documentByteArray = try {
+            ResourceDownloader.downloadResource(resource)
+        } catch (e: Exception) {
+            LOGGER.warn("Unable to download the document: ${resource.url}", e)
+            throw e
+        }
 
         val singleLinePdfText = documentByteArray.inputStream().use {
             try {
@@ -174,13 +182,23 @@ class DocumentParsingServiceImpl : DocumentParsingService {
             }
         }
 
-        val crlRegex = """http[^\s]{1,2000}\.crl""".toRegex()
+        val crlRegex = """http[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]{1,2000}\.crl""".toRegex()
         val matchResults = crlRegex.findAll(singleLinePdfText)
         val documentUrls = matchResults
                 .map { it.value }
                 .distinct()
 
         return documentUrls
+                .filter {
+                    // Make sure the URL is valid
+                    try {
+                        URL(it).toURI()
+                        true
+                    } catch (e: Exception) {
+                        LOGGER.error("The URL '$it' extracted from ${resource.url} is not valid.", e)
+                        false
+                    }
+                }
                 .map {
                     Document(
                             url = it,
@@ -225,41 +243,6 @@ class DocumentParsingServiceImpl : DocumentParsingService {
     }
 
     /**
-     * Download the document accessible from the given [resource].
-     *
-     * @param resource [Resource] to the document data.
-     * @return Document data.
-     */
-    private fun downloadDocument(resource: Resource): ByteArray {
-        val resourceUrl = resource.url.toString()
-
-        return if (resource is UrlResource) {
-            // Apache HttpClient allows us to ignore problems with SSL certificates and handle redirections
-            try {
-                val sslContext = SSLContext.getInstance("TLS")
-                sslContext.init(null, arrayOf<TrustManager>(noopX509TrustManager), java.security.SecureRandom())
-                val httpClient = HttpClients
-                        .custom()
-                        .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                        .setSSLContext(sslContext)
-                        .build()
-                httpClient.execute(HttpGet(resourceUrl)).use {
-                    it.entity.content.use {
-                        it.readBytes()
-                    }
-                }
-            } catch (e: Exception) {
-                LOGGER.warn("Unable to download the document: $resourceUrl", e)
-                throw e
-            }
-        } else {
-            resource.inputStream.buffered().use {
-                it.readBytes()
-            }
-        }
-    }
-
-    /**
      * [NamespaceContext] compatible with documents of the type [DocumentType.TS_STATUS_LIST_XML].
      */
     private class TsStatusListNamespaceContext : NamespaceContext {
@@ -279,21 +262,6 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
         override fun getPrefixes(namespaceURI: String?): MutableIterator<Any?> {
             throw UnsupportedOperationException()
-        }
-    }
-
-    /**
-     * [X509TrustManager] that does nothing. It is useful for accepting any SSL certificate
-     */
-    private class NoopX509TrustManager : X509TrustManager {
-        override fun checkClientTrusted(p0: Array<out X509Certificate>?, p1: String?) {
-        }
-
-        override fun checkServerTrusted(p0: Array<out X509Certificate>?, p1: String?) {
-        }
-
-        override fun getAcceptedIssuers(): Array<X509Certificate> {
-            return arrayOf()
         }
     }
 }

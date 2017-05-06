@@ -1,7 +1,9 @@
 package fr.marcsworld.service
 
 import fr.marcsworld.enums.DocumentType
+import fr.marcsworld.model.dto.DocumentUrlAndType
 import fr.marcsworld.model.entity.Document
+import fr.marcsworld.model.entity.DocumentCheckingResult
 
 /**
  * Service for handling [Document]s.
@@ -9,6 +11,19 @@ import fr.marcsworld.model.entity.Document
  * @author Marc Plouhinec
  */
 interface DocumentService {
+
+    /**
+     * Save the given [DocumentCheckingResult].
+     */
+    fun saveDocumentCheckingResult(documentCheckingResult: DocumentCheckingResult)
+
+    /**
+     * Find all uniques pairs of [Document.url] and [Document.type] for [Document]s that have
+     * their property [Document.isStillProvidedByAgency] equal to true.
+     *
+     * @return Found distinct [DocumentUrlAndType]s.
+     */
+    fun findAllStillProvidedDocumentUrlAndTypes(): List<DocumentUrlAndType>
 
     /**
      * Find all the [Document]s of the given [documentType] that have been provided by the given [agencyId].

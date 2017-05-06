@@ -60,7 +60,7 @@ open class DocumentParsingTasks(
     ) : Runnable {
 
         override fun run() {
-            LOGGER.info("Parse the documents of the TrustServiceListOperator agency {}.", agency.territoryCode)
+            LOGGER.debug("Parse the documents of the TrustServiceListOperator agency {}.", agency.territoryCode)
 
             // Parse the root agency documents and update the database
             val providedDocuments = documentService.findAllStillProvidedDocumentsByAgencyIdAndByType(agency.id!!, DocumentType.TS_STATUS_LIST_XML)
@@ -89,7 +89,7 @@ open class DocumentParsingTasks(
     ) : Runnable {
 
         override fun run() {
-            LOGGER.info("Parse the documents of the TrustService agency {}.", agency.names.joinToString { "[${it.languageCode}]${it.name}" })
+            LOGGER.debug("Parse the documents of the TrustService agency {}.", agency.names.joinToString { "[${it.languageCode}]${it.name}" })
 
             val providedDocuments = documentService.findAllStillProvidedDocumentsByAgencyIdAndByType(agency.id!!, DocumentType.TSP_SERVICE_DEFINITION)
             val certificateRevocationListDocuments = providedDocuments
