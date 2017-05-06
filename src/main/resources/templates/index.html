@@ -11,19 +11,19 @@
 <div id="header">
     <div id="header-title">Trust Service Reputation</div>
     <div id="header-toolbar">
-        <button>
+        <button id="collapse-all">
             <i class="fa fa-minus-square-o" aria-hidden="true"></i>
             Collapse all
         </button>
-        <button>
+        <button id="expand-all">
             <i class="fa fa-plus-square-o" aria-hidden="true"></i>
             Expand all
         </button>
-        <button>
+        <button id="collapse-documents">
             <i class="fa fa-file-o" aria-hidden="true"></i>
             Collapse documents
         </button>
-        <button>
+        <button id="collapse-all-but-top-agencies">
             <i class="fa fa-university" aria-hidden="true"></i>
             Collapse all but top agencies
         </button>
@@ -42,6 +42,7 @@
 
 <script th:src="@{/vendor/jquery-3.2.1.min.js}"></script>
 <script th:src="@{/script/treeController.js}"></script>
+<script th:src="@{/script/toolbarController.js}"></script>
 <script th:src="@{/script/mainController.js}"></script>
 </body>
 </html>

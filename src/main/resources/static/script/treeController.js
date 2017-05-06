@@ -46,6 +46,46 @@ var treeController = {
                 });
             }
         });
+    },
+
+    /**
+     * Collapse all agencies and documents.
+     */
+    collapseAll: function () {
+        $('.expandable-tree-node ~ .tree-sub-nodes').hide();
+        $('.expandable-tree-node > button').text('+');
+    },
+
+    /**
+     * Expand all agencies and documents.
+     */
+    expandAll: function () {
+        $('.expandable-tree-node ~ .tree-sub-nodes').show();
+        $('.expandable-tree-node > button').text('-');
+    },
+
+    /**
+     * Collapse all documents.
+     */
+    collapseDocuments: function () {
+        $('.expandable-tree-node-documents ~ .tree-sub-nodes').hide();
+        $('.expandable-tree-node-documents > button').text('+');
+    },
+
+    /**
+     * Collapse all but the top-level agencies.
+     */
+    collapseAllButTopAgencies: function () {
+        // Expand the first level of sub-agencies
+        $('.expandable-tree-node-sub-agencies:first ~ .tree-sub-nodes').show();
+        $('.expandable-tree-node-sub-agencies:first > button').text('-');
+
+        // Collapse the rest
+        $('.expandable-tree-node-sub-agencies:not(:first) ~ .tree-sub-nodes').hide();
+        $('.expandable-tree-node-sub-agencies:not(:first) > button').text('+');
+
+        // Collapse all documents
+        this.collapseDocuments();
     }
 
 };

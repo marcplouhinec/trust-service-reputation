@@ -10,6 +10,7 @@ var mainController = {
      */
     main: function () {
         treeController.initialize();
+        toolbarController.initialize();
     }
 
 };
