@@ -23,6 +23,11 @@ body {
 
 #header {
     display: flex;
+    flex-direction: column;
+}
+
+#header-title {
+    display: flex;
 
     height: 50px;
     background-color: #222;
@@ -35,10 +40,31 @@ body {
     padding-left: 8px;
 }
 
+#header-toolbar {
+    display: flex;
+
+    height: 40px;
+    border-bottom: 1px solid #ccc;
+    background-color: #eee;
+}
+
+#header-toolbar > button {
+    background-color: inherit;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+#header-toolbar > button:hover {
+    background-color: #ccc;
+}
+
 #body-content {
     flex: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: 16px;
 }
 
 #footer {
