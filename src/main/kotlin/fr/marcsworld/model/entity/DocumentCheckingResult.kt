@@ -1,5 +1,6 @@
 package fr.marcsworld.model.entity
 
+import fr.marcsworld.model.dto.DocumentStatistics
 import java.util.*
 import javax.persistence.*
 
@@ -10,6 +11,27 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "DOCUMENT_CHECKING_RESULT")
+@NamedNativeQueries(
+        NamedNativeQuery(
+                name = "DocumentCheckingResult.findAllDocumentStatistics",
+                query = "SELECT " +
+                        "    mostRecentResult.DOCUMENT_URL, " +
+                        "    stats.AVG_AVAILABILITY, " +
+                        "    stats.AVG_VALIDITY, " +
+                        "    mostRecentResult.SIZE_IN_BYTES, " +
+                        "    mostRecentResult.DOWNLOAD_DURATION_IN_MILLIS " +
+                        "FROM DOCUMENT_CHECKING_RESULT mostRecentResult " +
+                        "INNER JOIN ( " +
+                        "    SELECT " +
+                        "        result.DOCUMENT_URL AS documentUrl, " +
+                        "        MAX(result.CHECKING_DATE) AS maxCheckingDate, " +
+                        "        AVG(result.IS_AVAILABLE * 100) AS AVG_AVAILABILITY, " +
+                        "        AVG(result.IS_VALID * 100) AS AVG_VALIDITY " +
+                        "    FROM DOCUMENT_CHECKING_RESULT result " +
+                        "    GROUP BY result.DOCUMENT_URL " +
+                        ") stats ON mostRecentResult.DOCUMENT_URL = stats.documentUrl AND mostRecentResult.CHECKING_DATE = stats.maxCheckingDate",
+                resultClass = DocumentStatistics::class)
+)
 class DocumentCheckingResult(
         @Id @GeneratedValue(strategy = GenerationType.AUTO)
         @Column(name = "DOCUMENT_CHECKING_RESULT_ID", nullable = false)

@@ -3,11 +3,13 @@ package fr.marcsworld.service.impl
 import fr.marcsworld.enums.AgencyType
 import fr.marcsworld.model.dto.AgencyNode
 import fr.marcsworld.model.dto.DocumentNode
+import fr.marcsworld.model.dto.DocumentStatistics
 import fr.marcsworld.model.entity.Agency
 import fr.marcsworld.model.entity.AgencyName
 import fr.marcsworld.model.entity.Document
 import fr.marcsworld.repository.AgencyNameRepository
 import fr.marcsworld.repository.AgencyRepository
+import fr.marcsworld.repository.DocumentCheckingResultRepository
 import fr.marcsworld.repository.DocumentRepository
 import fr.marcsworld.service.AgencyService
 import fr.marcsworld.utils.AgencyComparator
@@ -24,7 +26,8 @@ import org.springframework.transaction.annotation.Transactional
 class AgencyServiceImpl(
         val agencyRepository: AgencyRepository,
         val agencyNameRepository: AgencyNameRepository,
-        val documentRepository: DocumentRepository
+        val documentRepository: DocumentRepository,
+        val documentCheckingResultRepository: DocumentCheckingResultRepository
 ) : AgencyService {
 
     companion object {
@@ -48,11 +51,12 @@ class AgencyServiceImpl(
 
         // Find all documents with statistical information
         val documents = documentRepository.findAll()
-        // TODO find statistical information when available
+        val documentStatistics = documentCheckingResultRepository.findAllDocumentStatistics()
 
         // Build the tree
         val agenciesByParent = agencies.groupBy(Agency::parentAgency)
         val documentsByAgency = documents.groupBy(Document::providedByAgency)
+        val documentStatisticsByUrl = documentStatistics.associateBy { it.url }
         val rootAgencies = agenciesByParent[null] ?: throw IllegalStateException("Unable to find the root agency.")
         val rootAgency = rootAgencies[0]
 
@@ -75,7 +79,19 @@ class AgencyServiceImpl(
 
             // Build the document nodes
             val agencyDocuments = documentsByAgency[currentAgency] ?: listOf()
-            val documentNodes = agencyDocuments.map { document -> DocumentNode(document, 100F, 100F, 0, 0F) }
+            val documentNodes = agencyDocuments.map { document ->
+                val statistics = documentStatisticsByUrl[document.url]
+                if (statistics is DocumentStatistics) {
+                    DocumentNode(
+                            document,
+                            statistics.availabilityPercentage,
+                            statistics.validityPercentage,
+                            statistics.currentSize,
+                            statistics.currentSize / (statistics.lastDownloadDurationInMillis / 1000F))
+                } else {
+                    DocumentNode(document, 100F, 100F, 0, 0F)
+                }
+            }
 
             // Build the children agency nodes
             val childrenAgencies = agenciesByParent[currentAgency]

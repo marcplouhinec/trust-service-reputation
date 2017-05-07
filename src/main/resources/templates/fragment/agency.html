@@ -96,10 +96,10 @@
                                                     <th>Avg. DL. speed</th>
                                                 </tr>
                                                 <tr>
-                                                    <td th:text="${documentNode.availabilityPercentage + '%'}">100%</td>
-                                                    <td th:text="${documentNode.validityPercentage + '%'}">100%</td>
-                                                    <td th:text="${documentNode.currentSize / 1024.0 + 'kB'}">10kB</td>
-                                                    <td th:text="${documentNode.averageDownloadSpeed / 1024 + 'kB/sec'}">28 kB/sec</td>
+                                                    <td th:text="${#numbers.formatDecimal(documentNode.availabilityPercentage, 1, 2) + '%'}">100%</td>
+                                                    <td th:text="${#numbers.formatDecimal(documentNode.validityPercentage, 1, 2) + '%'}">100%</td>
+                                                    <td th:text="${#numbers.formatDecimal(documentNode.currentSize / 1024.0, 1, 2) + 'kB'}">10kB</td>
+                                                    <td th:text="${#numbers.formatDecimal(documentNode.averageDownloadSpeed / 1024, 1, 2) + 'kB/sec'}">28 kB/sec</td>
                                                 </tr>
                                             </table>
                                         </td>

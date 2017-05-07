@@ -1,6 +1,8 @@
 package fr.marcsworld.repository
 
+import fr.marcsworld.model.dto.DocumentStatistics
 import fr.marcsworld.model.entity.DocumentCheckingResult
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 
 /**
@@ -8,4 +10,14 @@ import org.springframework.data.repository.CrudRepository
  *
  * @author Marc Plouhinec
  */
-interface DocumentCheckingResultRepository : CrudRepository<DocumentCheckingResult, Long>
+interface DocumentCheckingResultRepository : CrudRepository<DocumentCheckingResult, Long> {
+
+    /**
+     * Compute all the [DocumentStatistics] for each document URL.
+     *
+     * @return One [DocumentStatistics] per URL.
+     */
+    @Query(name = "DocumentCheckingResult.findAllDocumentStatistics")
+    fun findAllDocumentStatistics(): List<DocumentStatistics>
+
+}
