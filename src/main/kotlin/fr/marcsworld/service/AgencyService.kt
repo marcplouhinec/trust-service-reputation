@@ -2,7 +2,6 @@ package fr.marcsworld.service
 
 import fr.marcsworld.model.dto.AgencyNode
 import fr.marcsworld.model.entity.Agency
-import fr.marcsworld.model.entity.Document
 
 /**
  * Service for handling [Agency]s.
@@ -46,13 +45,5 @@ interface AgencyService {
      * @param tsloAgency [Agency] with the type [fr.marcsworld.enums.AgencyType.TRUST_SERVICE_LIST_OPERATOR]
      */
     fun updateTrustServiceListOperatorAgency(tsloAgency: Agency)
-
-    /**
-     * Update in the database the given [Document]s that belong to the given TrustService [Agency].
-     *
-     * @param tsAgency [Agency] of the type [fr.marcsworld.enums.AgencyType.TRUST_SERVICE] that provides the [Document]s.
-     * @param certificateRevocationListDocuments [Document]s with the type [fr.marcsworld.enums.DocumentType.CERTIFICATE_REVOCATION_LIST].
-     */
-    fun updateTrustServiceAgencyDocuments(tsAgency: Agency, certificateRevocationListDocuments: List<Document>)
 
 }

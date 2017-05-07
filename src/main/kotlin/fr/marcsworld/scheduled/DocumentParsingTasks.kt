@@ -66,37 +66,20 @@ open class DocumentParsingTasks(
             val providedDocuments = documentService.findAllStillProvidedDocumentsByAgencyIdAndByType(agency.id!!, DocumentType.TS_STATUS_LIST_XML)
             for (document in providedDocuments) {
                 val tsloAgency = documentParsingService.parseTsStatusList(UrlResource(document.url))
+
+                // Try to find the CERTIFICATE_REVOCATION_LISTS by parsing the TSP_SERVICE_DEFINITION documents of the TRUST_SERVICE agencies
+                for (tspAgency in tsloAgency.childrenAgencies) {
+                    for (tsAgency in tspAgency.childrenAgencies) {
+                        val certificateRevocationListDocuments = tsAgency.providingDocuments
+                                .flatMap { documentParsingService.parseTspServiceDefinition(UrlResource(it.url), agency) }
+                                .distinctBy { it.url }
+                                .toList()
+                        tsAgency.providingDocuments += certificateRevocationListDocuments
+                    }
+                }
+
                 agencyService.updateTrustServiceListOperatorAgency(tsloAgency)
             }
-
-            // Find children TRUST_SERVICE agencies and schedule tasks for each of them
-            val childrenTspAgencies = agencyService.findAllStillReferencedAgenciesByParentAgencyId(agency.id!!)
-            val childrenTsAgencies = childrenTspAgencies.flatMap { agencyService.findAllStillReferencedAgenciesByParentAgencyId(it.id!!) }
-            for (childAgency in childrenTsAgencies) {
-                documentParsingTaskExecutor.execute(ChildTrustServiceAgencyDocumentParser(childAgency))
-            }
-        }
-
-    }
-
-    /**
-     * Parse document of type [DocumentType.TSP_SERVICE_DEFINITION] provided by the given child agency.
-     *
-     * @param agency Agency of type [fr.marcsworld.enums.AgencyType.TRUST_SERVICE].
-     */
-    inner class ChildTrustServiceAgencyDocumentParser(
-            val agency: Agency
-    ) : Runnable {
-
-        override fun run() {
-            LOGGER.debug("Parse the documents of the TrustService agency {}.", agency.names.joinToString { "[${it.languageCode}]${it.name}" })
-
-            val providedDocuments = documentService.findAllStillProvidedDocumentsByAgencyIdAndByType(agency.id!!, DocumentType.TSP_SERVICE_DEFINITION)
-            val certificateRevocationListDocuments = providedDocuments
-                    .flatMap { documentParsingService.parseTspServiceDefinition(UrlResource(it.url), agency) }
-                    .distinctBy { it.url }
-                    .toList()
-            agencyService.updateTrustServiceAgencyDocuments(agency, certificateRevocationListDocuments)
         }
 
     }

@@ -1,7 +1,6 @@
 package fr.marcsworld.service.impl
 
 import fr.marcsworld.enums.AgencyType
-import fr.marcsworld.enums.DocumentType
 import fr.marcsworld.model.dto.AgencyNode
 import fr.marcsworld.model.dto.DocumentNode
 import fr.marcsworld.model.entity.Agency
@@ -121,12 +120,6 @@ class AgencyServiceImpl(
             // Check the equality by comparing their x509 certificates and names
             updateChildrenAgencies(childrenTspAgencies, existingTsloAgency, true)
         }
-    }
-
-    @Transactional
-    override fun updateTrustServiceAgencyDocuments(tsAgency: Agency, certificateRevocationListDocuments: List<Document>) {
-        LOGGER.debug("Update the certificateRevocationListDocuments for the agency: {}.", tsAgency.names.joinToString { "[${it.languageCode}]${it.name}" })
-        updateProvidingDocuments(certificateRevocationListDocuments, tsAgency, markNotProvidedAnymoreDocuments = true, handleCertificateRevocationList = true)
     }
 
     /**
@@ -254,15 +247,9 @@ class AgencyServiceImpl(
      * @param documents Up-to-date list of [Document]s that are provided by the given [Agency].
      * @param existingAgency [Agency] entity from the Database that provides the given [Document]s.
      * @param markNotProvidedAnymoreDocuments If true, update the [Document.isStillProvidedByAgency] property of missing documents.
-     * @param handleCertificateRevocationList The [DocumentType.CERTIFICATE_REVOCATION_LIST] are handled if true or ignored if false.
      */
-    private fun updateProvidingDocuments(documents: List<Document>, existingAgency: Agency, markNotProvidedAnymoreDocuments: Boolean = true, handleCertificateRevocationList: Boolean = false) {
-        var existingDocuments = documentRepository.findAllByProvidedByAgencyId(existingAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
-        if (handleCertificateRevocationList) {
-            existingDocuments = existingDocuments.filter { it.type == DocumentType.CERTIFICATE_REVOCATION_LIST }
-        } else {
-            existingDocuments = existingDocuments.filter { it.type != DocumentType.CERTIFICATE_REVOCATION_LIST }
-        }
+    private fun updateProvidingDocuments(documents: List<Document>, existingAgency: Agency, markNotProvidedAnymoreDocuments: Boolean = true) {
+        val existingDocuments = documentRepository.findAllByProvidedByAgencyId(existingAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
 
         // Find the documents to create
         val newDocuments = documents.filter { document -> existingDocuments.none { it.url == document.url } }
