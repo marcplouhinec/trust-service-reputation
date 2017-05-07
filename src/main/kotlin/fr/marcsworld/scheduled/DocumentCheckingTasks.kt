@@ -32,7 +32,7 @@ open class DocumentCheckingTasks(
     /**
      * Find all documents that need to be checked and create one task for each of them.
      */
-    @Scheduled(fixedRate = 30 * 60 * 1000, initialDelay = 10 * 1000)
+    @Scheduled(fixedRate = 30 * 60 * 1000, initialDelay = 100 * 60 * 1000)
     fun scheduleDocumentCheckingTasks() {
         LOGGER.info("Check documents.")
         val documentUrlAndTypes = documentService.findAllStillProvidedDocumentUrlAndTypes()

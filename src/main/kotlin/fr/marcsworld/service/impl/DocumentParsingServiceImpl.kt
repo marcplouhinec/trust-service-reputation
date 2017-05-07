@@ -18,7 +18,6 @@ import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.SAXParseException
 import java.io.IOException
-import java.net.URI
 import java.net.URL
 import java.nio.charset.Charset
 import javax.xml.XMLConstants
@@ -113,31 +112,40 @@ class DocumentParsingServiceImpl : DocumentParsingService {
 
             // Parse the children TRUST_SERVICE agencies
             val tspServiceNode = evalXPathToNodes(it, "./v2:TSPServices/v2:TSPService")
-            tspAgency.childrenAgencies = tspServiceNode
-                    .map {
-                        val tsAgency = Agency(
-                                parentAgency = tspAgency,
-                                type = AgencyType.TRUST_SERVICE,
-                                referencedByDocumentUrl = resourceUrl
-                        )
-                        tsAgency.names = evalXPathToAgencyNames(it, "./v2:ServiceInformation/v2:ServiceName/v2:Name", tsAgency)
+            tspAgency.childrenAgencies = tspServiceNode.map {
+                val tsAgency = Agency(
+                        parentAgency = tspAgency,
+                        type = AgencyType.TRUST_SERVICE,
+                        referencedByDocumentUrl = resourceUrl
+                )
+                tsAgency.names = evalXPathToAgencyNames(it, "./v2:ServiceInformation/v2:ServiceName/v2:Name", tsAgency)
 
-                        val uriNodes = evalXPathToNodes(it, "./v2:ServiceInformation/v2:TSPServiceDefinitionURI/v2:URI")
-                        val uriNodes2 = evalXPathToNodes(it, "./v2:ServiceInformation/v2:SchemeServiceDefinitionURI/v2:URI")
-                        val allUriNodes = uriNodes + uriNodes2
-                        tsAgency.providingDocuments = allUriNodes.map {
+                tsAgency.x509Certificate = evalXPathToString(it, "./v2:ServiceInformation/v2:ServiceDigitalIdentity/v2:DigitalId/v2:X509Certificate")
+
+                val tsdUriNodes = evalXPathToNodes(it, "./v2:ServiceInformation/v2:TSPServiceDefinitionURI/v2:URI")
+                val tsdDocuments = tsdUriNodes.map {
+                    Document(
+                            url = it.textContent,
+                            type = DocumentType.TSP_SERVICE_DEFINITION,
+                            languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
+                            providedByAgency = tsAgency)
+                }
+
+                val crlUriNodes = evalXPathToNodes(it, "./v2:ServiceInformation/v2:ServiceSupplyPoints/v2:ServiceSupplyPoint")
+                val crlDocuments = crlUriNodes
+                        .filter { it.textContent.endsWith(".crl") }
+                        .map {
                             Document(
                                     url = it.textContent,
-                                    type = DocumentType.TSP_SERVICE_DEFINITION,
-                                    languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
+                                    type = DocumentType.CERTIFICATE_REVOCATION_LIST,
+                                    languageCode = "en",
                                     providedByAgency = tsAgency)
                         }
 
-                        tsAgency
-                    }
-                    .filter { tsAgency ->
-                        tsAgency.names.isNotEmpty()
-                    }
+                tsAgency.providingDocuments = tsdDocuments + crlDocuments
+
+                tsAgency
+            }
 
             tspAgency
         }

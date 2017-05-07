@@ -32,6 +32,9 @@ class Agency (
         @Column(name = "TERRITORY_CODE", nullable = true, length = 20)
         var territoryCode: String? = null,
 
+        @Column(name = "X509_CERTIFICATE", nullable = true, length = 4000)
+        var x509Certificate: String? = null,
+
         @OneToMany(mappedBy = "agency", fetch = FetchType.EAGER)
         var names: List<AgencyName> = listOf(),
 

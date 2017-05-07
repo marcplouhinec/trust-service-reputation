@@ -148,6 +148,23 @@ open class AgencyServiceTest {
         Assert.assertEquals(persistedGrandChildAgency, persistedGrandChildAgency.providingDocuments[0].providedByAgency)
         Assert.assertEquals(true, persistedGrandChildAgency.providingDocuments[0].isStillProvidedByAgency)
         Assert.assertEquals(0, persistedGrandChildAgency.childrenAgencies.size)
+
+        // Check a special case when two agencies are merged into one
+        val certinomisTSPAgency = topAgency.childrenAgencies.findLast { it.names.all { it.name == "Certinomis SA" } } ?: throw IllegalStateException()
+        val persistedCertinomisTSPAgency = persistedTopAgency.childrenAgencies.findLast { it.names.all { it.name == "Certinomis SA" } } ?: throw IllegalStateException()
+        Assert.assertEquals("The document contain 5 children of Certinomis.", 5, certinomisTSPAgency.childrenAgencies.size)
+        Assert.assertEquals("Only 3 children of Certinomis were saved.", 3, persistedCertinomisTSPAgency.childrenAgencies.size)
+
+        val certinomisPrimeTSAgencies = certinomisTSPAgency.childrenAgencies.filter { it.names.all { it.name == "Certinomis - Prime CA" } }
+        val persistedCertinomisPrimeTSAgencies = persistedCertinomisTSPAgency.childrenAgencies.filter { it.names.all { it.name == "Certinomis - Prime CA" } }
+        Assert.assertEquals(2, certinomisPrimeTSAgencies.size)
+        Assert.assertEquals(1, persistedCertinomisPrimeTSAgencies.size)
+
+        Assert.assertEquals(2, persistedCertinomisPrimeTSAgencies[0].names.size)
+        val parsedDocuments = certinomisPrimeTSAgencies.flatMap { it.providingDocuments }
+        val persistedDocuments = persistedCertinomisPrimeTSAgencies.flatMap { it.providingDocuments }
+        val areAllParsedDocumentsPersisted = parsedDocuments.all { parsedDocument -> persistedDocuments.any { it.url == parsedDocument.url && it.languageCode == parsedDocument.languageCode } }
+        Assert.assertTrue(areAllParsedDocumentsPersisted)
     }
 
     @Test

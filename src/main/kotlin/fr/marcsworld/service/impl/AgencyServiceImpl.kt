@@ -11,6 +11,7 @@ import fr.marcsworld.repository.AgencyNameRepository
 import fr.marcsworld.repository.AgencyRepository
 import fr.marcsworld.repository.DocumentRepository
 import fr.marcsworld.service.AgencyService
+import fr.marcsworld.utils.AgencyComparator
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -111,30 +112,14 @@ class AgencyServiceImpl(
         // Update the children agencies that are also TRUST_SERVICE_LIST_OPERATORS
         val childrenTsloAgencies = tsloAgency.childrenAgencies.filter { it.type == AgencyType.TRUST_SERVICE_LIST_OPERATOR }
         if (childrenTsloAgencies.isNotEmpty()) {
-            updateChildrenAgencies(childrenTsloAgencies, existingTsloAgency, false, { agency1, agency2 -> agency1.territoryCode == agency2.territoryCode })
+            updateChildrenAgencies(childrenTsloAgencies, existingTsloAgency, false)
         }
 
         // Update the children agencies that are TRUST_SERVICE_PROVIDERS (including their children that are TRUST_SERVICES)
         val childrenTspAgencies = tsloAgency.childrenAgencies.filter { it.type == AgencyType.TRUST_SERVICE_PROVIDER }
         if (childrenTspAgencies.isNotEmpty()) {
-            // Unfortunately, the only way to check the equality of two agencies (that are not TRUST_SERVICE_LIST_OPERATOR) is by comparing their names
-            updateChildrenAgencies(childrenTspAgencies, existingTsloAgency, true, { agency1, agency2 ->
-                // Find a common language code
-                val commonLanguageCodes = agency1.names
-                        .filter { agencyName -> agency2.names.any { it.languageCode.equals(agencyName.languageCode, ignoreCase = true) } }
-                        .map { it.languageCode }
-
-                if (commonLanguageCodes.isNotEmpty()) {
-                    // Compare the names for the first common language code
-                    val commonLanguageCode = commonLanguageCodes[0]
-                    val agencyName1 = agency1.names.findLast { it.languageCode.equals(commonLanguageCode, ignoreCase = true) }
-                    val agencyName2 = agency2.names.findLast { it.languageCode.equals(commonLanguageCode, ignoreCase = true) }
-
-                    agencyName1 is AgencyName && agencyName2 is AgencyName && agencyName1.name == agencyName2.name
-                } else {
-                    false
-                }
-            })
+            // Check the equality by comparing their x509 certificates and names
+            updateChildrenAgencies(childrenTspAgencies, existingTsloAgency, true)
         }
     }
 
@@ -151,32 +136,42 @@ class AgencyServiceImpl(
      * @param childrenAgencies Up-to-date list of children [Agency]s.
      * @param existingParentAgency [Agency] entity from the Database that own the given children [Agency]s.
      * @param deleteMissingNames If true, for each child [Agency] that already exists in the database, existing but missing [Agency.names]s are deleted.
-     * @param areAgenciesEquals Lambda that returns true when the given agencies are equals and false if not.
      */
-    private fun updateChildrenAgencies(
-            childrenAgencies: List<Agency>,
-            existingParentAgency: Agency,
-            deleteMissingNames: Boolean = true,
-            areAgenciesEquals: (agency1: Agency, agency2: Agency) -> Boolean) {
+    private fun updateChildrenAgencies(childrenAgencies: List<Agency>, existingParentAgency: Agency, deleteMissingNames: Boolean = true) {
 
         val existingChildrenAgencies = agencyRepository.findAllByParentAgencyId(existingParentAgency.id ?: throw IllegalArgumentException("Missing agency ID."))
 
+        // Merge duplicated children agencies
+        val distinctChildrenAgencies = childrenAgencies.fold(initial = mutableListOf<Agency>(), operation = { acc, agency ->
+            val duplicatedAgency = acc.findLast { AgencyComparator.compare(it, agency) == 0 }
+            if (duplicatedAgency is Agency) {
+                // Merge the duplicated agencies names
+                duplicatedAgency.names = (duplicatedAgency.names + agency.names).distinctBy { "[${it.languageCode}]=${it.name}" }
+                duplicatedAgency.providingDocuments = (duplicatedAgency.providingDocuments + agency.providingDocuments).distinctBy { "[${it.languageCode}]=${it.url}" }
+            } else {
+                acc.add(agency)
+            }
+            acc
+        })
+
         // Find the new children agencies
-        val newChildrenAgencies = childrenAgencies.filter { agency -> existingChildrenAgencies.none { areAgenciesEquals(agency, it) } }
+        val newChildrenAgencies = distinctChildrenAgencies.filter { agency ->
+            existingChildrenAgencies.none { AgencyComparator.compare(agency, it) == 0 }
+        }
 
         // Find the children agencies to update
         val modifiedChildrenAgencies = existingChildrenAgencies.filter { agency ->
-            childrenAgencies.any { areAgenciesEquals(agency, it) && it.referencedByDocumentUrl != agency.referencedByDocumentUrl }
+            distinctChildrenAgencies.any { AgencyComparator.compare(agency, it) == 0 && it.referencedByDocumentUrl != agency.referencedByDocumentUrl }
         }
 
         // Find the children agencies that are not referenced anymore
         val notReferencedAnymoreChildrenAgencies = existingChildrenAgencies.filter { agency ->
-            (agency.isStillReferencedByDocument ?: false) && childrenAgencies.none { areAgenciesEquals(agency, it) }
+            (agency.isStillReferencedByDocument ?: false) && distinctChildrenAgencies.none { AgencyComparator.compare(agency, it) == 0 }
         }
 
         // Find the children agencies that are referenced again
         val referencedAgainChildrenAgencies = existingChildrenAgencies.filter { agency ->
-            !(agency.isStillReferencedByDocument ?: false) && childrenAgencies.any { areAgenciesEquals(agency, it) }
+            !(agency.isStillReferencedByDocument ?: false) && distinctChildrenAgencies.any { AgencyComparator.compare(agency, it) == 0 }
         }
 
         // Update the agency in the database
@@ -185,7 +180,7 @@ class AgencyServiceImpl(
             agencyRepository.save(agency)
         }
         for (agency in modifiedChildrenAgencies) {
-            val upToDateAgency = childrenAgencies.findLast { areAgenciesEquals(agency, it) }
+            val upToDateAgency = distinctChildrenAgencies.findLast { AgencyComparator.compare(agency, it) == 0 }
             if (upToDateAgency is Agency) {
                 agency.referencedByDocumentUrl = upToDateAgency.referencedByDocumentUrl
                 agencyRepository.save(agency)
@@ -201,14 +196,14 @@ class AgencyServiceImpl(
         }
 
         // Update the names and documents
-        val persistedTsloAgencies = childrenAgencies
+        val persistedTsloAgencies = distinctChildrenAgencies
                 .map { agency ->
-                    val existingAgency = existingChildrenAgencies.findLast { areAgenciesEquals(agency, it) }
+                    val existingAgency = existingChildrenAgencies.findLast { AgencyComparator.compare(agency, it) == 0 }
                     existingAgency ?: agency
                 }
                 .filter { it.id != null }
         for (agency in persistedTsloAgencies) {
-            val upToDateAgency = childrenAgencies.findLast { areAgenciesEquals(agency, it) }
+            val upToDateAgency = distinctChildrenAgencies.findLast { AgencyComparator.compare(agency, it) == 0 }
 
             if (upToDateAgency is Agency) {
                 // Create but don't delete missing names
@@ -218,7 +213,7 @@ class AgencyServiceImpl(
                 updateProvidingDocuments(upToDateAgency.providingDocuments, agency)
 
                 // Update the children agencies
-                updateChildrenAgencies(upToDateAgency.childrenAgencies, agency, deleteMissingNames, areAgenciesEquals)
+                updateChildrenAgencies(upToDateAgency.childrenAgencies, agency, deleteMissingNames)
             }
         }
     }
