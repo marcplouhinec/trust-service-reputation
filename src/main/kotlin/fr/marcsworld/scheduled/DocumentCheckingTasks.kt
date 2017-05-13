@@ -57,26 +57,30 @@ open class DocumentCheckingTasks(
             val documentData: ByteArray? = try {
                 ResourceDownloader.downloadResource(UrlResource(documentUrlAndType.url))
             } catch (e: Exception) {
-                LOGGER.warn("Unable to download the document ${documentUrlAndType.url}", e)
+                LOGGER.warn("Unable to download the document {}: {} - {}", documentUrlAndType.url, e.javaClass, e.message)
                 null
             }
             val timeAfterDownloading = System.currentTimeMillis()
 
             // Validate the document if applicable
             val isDocumentValid =
-                    if (documentData is ByteArray && documentUrlAndType.type == DocumentType.TS_STATUS_LIST_XML) {
-                        // Check that the XML document is well-formed
-                        try {
-                            documentData.inputStream().use {
-                                val xmlReader = XMLReaderFactory.createXMLReader()
-                                xmlReader.parse(InputSource(it))
+                    if (documentData is ByteArray) {
+                        if (documentUrlAndType.type == DocumentType.TS_STATUS_LIST_XML) {
+                            // Check that the XML document is well-formed
+                            try {
+                                documentData.inputStream().use {
+                                    val xmlReader = XMLReaderFactory.createXMLReader()
+                                    xmlReader.parse(InputSource(it))
+                                }
+                                true
+                            } catch (e: Exception) {
+                                false
                             }
+                        } else {
                             true
-                        } catch (e: Exception) {
-                            false
                         }
                     } else {
-                        true
+                        false
                     }
 
             // Store the result in the database

@@ -21,6 +21,9 @@
             </div>
             <div class="tree-node-header-status">
                 <span th:text="${agencyNode.active ? '[active]' : '[inactive]'}">[active]</span>
+                <th:block th:if="${agencyNode.rating}">
+                    [rating: <span th:text="${agencyNode.rating}">5</span>/5]
+                </th:block>
             </div>
         </div>
         <table class="tree-node-properties">
@@ -91,7 +94,7 @@
                                             <table class="document-stats">
                                                 <tr>
                                                     <th>Availability</th>
-                                                    <th>Validity rate</th>
+                                                    <th>Validity</th>
                                                     <th>Size</th>
                                                     <th>Avg. DL. speed</th>
                                                 </tr>

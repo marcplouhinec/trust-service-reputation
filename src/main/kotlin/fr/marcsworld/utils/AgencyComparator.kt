@@ -49,6 +49,11 @@ object AgencyComparator : Comparator<Agency> {
             return territoryCodeComparisonResult
         }
 
+        // Two agencies with the same territory code are equal, no matter what are the other attributes
+        if (agency1.territoryCode is String && agency2.territoryCode is String && agency1.territoryCode == agency2.territoryCode) {
+            return 0
+        }
+
         // Compare names
         val commonLanguageCodes = agency1.names // Find a common language code
                 .filter { agencyName ->

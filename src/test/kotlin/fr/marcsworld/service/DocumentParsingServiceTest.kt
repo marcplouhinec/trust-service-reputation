@@ -68,6 +68,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(DocumentType.TS_STATUS_LIST_XML, firstChildAgency.providingDocuments[0].type)
         Assert.assertEquals("en", firstChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(firstChildAgency, firstChildAgency.providingDocuments[0].providedByAgency)
+        Assert.assertEquals(DocumentType.TS_STATUS_LIST_XML, firstChildAgency.providingDocuments[0].referencedByDocumentType)
 
         Assert.assertEquals(0, firstChildAgency.childrenAgencies.size)
     }
@@ -155,6 +156,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION, firstGrandChildAgency.providingDocuments[0].type)
         Assert.assertEquals("fr", firstGrandChildAgency.providingDocuments[0].languageCode)
         Assert.assertEquals(firstGrandChildAgency, firstGrandChildAgency.providingDocuments[0].providedByAgency)
+        Assert.assertEquals(DocumentType.TS_STATUS_LIST_XML, firstGrandChildAgency.providingDocuments[0].referencedByDocumentType)
 
         Assert.assertEquals(0, firstGrandChildAgency.childrenAgencies.size)
     }
@@ -171,6 +173,7 @@ class DocumentParsingServiceTest {
         Assert.assertEquals(DocumentType.CERTIFICATE_REVOCATION_LIST, documents[0].type)
         Assert.assertEquals("en", documents[0].languageCode)
         Assert.assertEquals(testAgency, documents[0].providedByAgency)
+        Assert.assertEquals(DocumentType.TSP_SERVICE_DEFINITION, documents[0].referencedByDocumentType)
 
         // Try to parse a non-PDF file
         val nonPdfResource = ClassPathResource("ts_status_list_eu.xml")

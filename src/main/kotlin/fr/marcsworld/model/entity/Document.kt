@@ -29,6 +29,9 @@ class Document (
         @JoinColumn(name = "PROVIDED_BY_AGENCY_ID", nullable = false)
         var providedByAgency: Agency,
 
+        @Column(name = "REFERENCED_BY_DOCUMENT_TYPE", nullable = true)
+        var referencedByDocumentType: DocumentType? = null,
+
         @Column(name = "IS_STILL_PROVIDED_BY_AGENCY", nullable = false)
         var isStillProvidedByAgency: Boolean = true
 

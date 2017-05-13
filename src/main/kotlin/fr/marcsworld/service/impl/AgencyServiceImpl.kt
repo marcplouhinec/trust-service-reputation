@@ -1,6 +1,7 @@
 package fr.marcsworld.service.impl
 
 import fr.marcsworld.enums.AgencyType
+import fr.marcsworld.enums.DocumentType
 import fr.marcsworld.model.dto.AgencyNode
 import fr.marcsworld.model.dto.DocumentNode
 import fr.marcsworld.model.dto.DocumentStatistics
@@ -87,9 +88,9 @@ class AgencyServiceImpl(
                             statistics.availabilityPercentage,
                             statistics.validityPercentage,
                             statistics.currentSize,
-                            statistics.currentSize / (statistics.lastDownloadDurationInMillis / 1000F))
+                            if (statistics.lastDownloadDurationInMillis == 0L) 0F else statistics.currentSize / (statistics.lastDownloadDurationInMillis / 1000F))
                 } else {
-                    DocumentNode(document, 100F, 100F, 0, 0F)
+                    DocumentNode(document, 0F, 0F, 0, 0F)
                 }
             }
 
@@ -97,8 +98,41 @@ class AgencyServiceImpl(
             val childrenAgencies = agenciesByParent[currentAgency]
             val childrenAgencyNodes = (childrenAgencies as? List)?.map(::buildAgencyNode) ?: listOf()
 
+            // Compute a rating
+            var rating: Int? = null
+            if (currentAgency.type == AgencyType.TRUST_SERVICE) {
+                rating = 0
+
+                // Active agency => one point
+                if (active) {
+                    rating += 1
+                }
+
+                // At least one available and valid document => one point
+                val availableAndValidDocumentNodes = documentNodes.filter { it.availabilityPercentage > 99 && it.validityPercentage > 99 }
+                if (availableAndValidDocumentNodes.isNotEmpty()) {
+                    rating += 1
+                }
+
+                // All documents are available and valid => one point
+                if (documentNodes.isNotEmpty() && documentNodes.size == availableAndValidDocumentNodes.size) {
+                    rating += 1
+                }
+
+                // At least one CERTIFICATE_REVOCATION_LIST => one point
+                val crlAvailableAndValidDocumentNodes = availableAndValidDocumentNodes.filter { it.document.type == DocumentType.CERTIFICATE_REVOCATION_LIST }
+                if (crlAvailableAndValidDocumentNodes.isNotEmpty()) {
+                    rating += 1
+                }
+
+                // At least one CERTIFICATE_REVOCATION_LIST coming from a TS_STATUS_LIST_XML (easier to parse than a TSP_SERVICE_DEFINITION) => one point
+                if (crlAvailableAndValidDocumentNodes.any { it.document.referencedByDocumentType == DocumentType.TS_STATUS_LIST_XML }) {
+                    rating += 1
+                }
+            }
+
             // Build the agency node
-            return AgencyNode(currentAgency, mainAgencyName, active, documentNodes, childrenAgencyNodes)
+            return AgencyNode(currentAgency, mainAgencyName, active, rating, documentNodes, childrenAgencyNodes)
         }
         return buildAgencyNode(rootAgency)
     }

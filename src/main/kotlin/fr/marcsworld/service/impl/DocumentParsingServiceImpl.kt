@@ -48,7 +48,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         val documentByteArray = try {
             ResourceDownloader.downloadResource(resource)
         } catch (e: Exception) {
-            LOGGER.warn("Unable to download the document: $resourceUrl", e)
+            LOGGER.warn("Unable to download the document {}: {} - {}", resourceUrl, e.javaClass, e.message)
             throw e
         }
         val documentBuilderFactory = DocumentBuilderFactory.newInstance()
@@ -59,7 +59,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                 documentBuilder.parse(it)
             }
         } catch (e: SAXParseException) {
-            LOGGER.warn("Invalid XML document from: $resourceUrl", e)
+            LOGGER.warn("Invalid XML document from {}: {} - ", resourceUrl, e.javaClass, e.message)
             throw e
         }
 
@@ -88,7 +88,8 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                                 url = tslLocation,
                                 type = DocumentType.TS_STATUS_LIST_XML,
                                 languageCode = "en",
-                                providedByAgency = agency))
+                                providedByAgency = agency,
+                                referencedByDocumentType = DocumentType.TS_STATUS_LIST_XML))
                     }
 
                     agency
@@ -97,7 +98,14 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         if (topTerritoryCode == "EU") {
             val euTsloAgency = otherTsloAgencies.findLast { it.territoryCode == "EU" }
             if (euTsloAgency is Agency) {
-                topAgency.providingDocuments = euTsloAgency.providingDocuments.map { Document(url = it.url, type = it.type, languageCode = it.languageCode, providedByAgency = topAgency) }
+                topAgency.providingDocuments = euTsloAgency.providingDocuments.map {
+                    Document(
+                            url = it.url,
+                            type = it.type,
+                            languageCode = it.languageCode,
+                            providedByAgency = topAgency,
+                            referencedByDocumentType = DocumentType.TS_STATUS_LIST_XML)
+                }
             }
         }
 
@@ -128,7 +136,8 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                             url = it.textContent,
                             type = DocumentType.TSP_SERVICE_DEFINITION,
                             languageCode = it.attributes.getNamedItem("xml:lang").nodeValue ?: throw IllegalArgumentException("Missing @xml:lang."),
-                            providedByAgency = tsAgency)
+                            providedByAgency = tsAgency,
+                            referencedByDocumentType = DocumentType.TS_STATUS_LIST_XML)
                 }
 
                 val crlUriNodes = evalXPathToNodes(it, "./v2:ServiceInformation/v2:ServiceSupplyPoints/v2:ServiceSupplyPoint")
@@ -139,7 +148,8 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                                     url = it.textContent,
                                     type = DocumentType.CERTIFICATE_REVOCATION_LIST,
                                     languageCode = "en",
-                                    providedByAgency = tsAgency)
+                                    providedByAgency = tsAgency,
+                                    referencedByDocumentType = DocumentType.TS_STATUS_LIST_XML)
                         }
 
                 tsAgency.providingDocuments = tsdDocuments + crlDocuments
@@ -161,7 +171,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
         val documentByteArray = try {
             ResourceDownloader.downloadResource(resource)
         } catch (e: Exception) {
-            LOGGER.warn("Unable to download the document: ${resource.url}", e)
+            LOGGER.warn("Unable to download the document {}: {} - {}", resource.url, e.javaClass, e.message)
             throw e
         }
 
@@ -203,7 +213,7 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                         URL(it).toURI()
                         true
                     } catch (e: Exception) {
-                        LOGGER.error("The URL '$it' extracted from ${resource.url} is not valid.", e)
+                        LOGGER.error("The URL '{}' extracted from {} is not valid: {} - {}", it, resource.url, e.javaClass, e.message)
                         false
                     }
                 }
@@ -212,7 +222,8 @@ class DocumentParsingServiceImpl : DocumentParsingService {
                             url = it,
                             type = DocumentType.CERTIFICATE_REVOCATION_LIST,
                             languageCode = "en",
-                            providedByAgency = providerAgency
+                            providedByAgency = providerAgency,
+                            referencedByDocumentType = DocumentType.TSP_SERVICE_DEFINITION
                     )
                 }
                 .toList()

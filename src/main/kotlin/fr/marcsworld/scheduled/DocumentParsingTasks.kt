@@ -2,6 +2,7 @@ package fr.marcsworld.scheduled
 
 import fr.marcsworld.enums.DocumentType
 import fr.marcsworld.model.entity.Agency
+import fr.marcsworld.model.entity.Document
 import fr.marcsworld.service.AgencyService
 import fr.marcsworld.service.DocumentParsingService
 import fr.marcsworld.service.DocumentService
@@ -38,8 +39,12 @@ open class DocumentParsingTasks(
         val rootAgency = agencyService.findRootAgency()
         val providedDocuments = documentService.findAllStillProvidedDocumentsByAgencyIdAndByType(rootAgency.id!!, DocumentType.TS_STATUS_LIST_XML)
         for (document in providedDocuments) {
-            val tsloAgency = documentParsingService.parseTsStatusList(UrlResource(document.url))
-            agencyService.updateTrustServiceListOperatorAgency(tsloAgency)
+            try {
+                val tsloAgency = documentParsingService.parseTsStatusList(UrlResource(document.url))
+                agencyService.updateTrustServiceListOperatorAgency(tsloAgency)
+            } catch (e: Exception) {
+                LOGGER.warn("Unable to parse the document {}: {} - {}", document.url, e.javaClass, e.message)
+            }
         }
 
         // Find the children agencies and schedule tasks for each of them
@@ -65,13 +70,25 @@ open class DocumentParsingTasks(
             // Parse the root agency documents and update the database
             val providedDocuments = documentService.findAllStillProvidedDocumentsByAgencyIdAndByType(agency.id!!, DocumentType.TS_STATUS_LIST_XML)
             for (document in providedDocuments) {
-                val tsloAgency = documentParsingService.parseTsStatusList(UrlResource(document.url))
+                val tsloAgency = try {
+                    documentParsingService.parseTsStatusList(UrlResource(document.url))
+                } catch (e: Exception) {
+                    LOGGER.warn("Unable to parse the document {}: {} - {}", document.url, e.javaClass, e.message)
+                    continue
+                }
 
                 // Try to find the CERTIFICATE_REVOCATION_LISTS by parsing the TSP_SERVICE_DEFINITION documents of the TRUST_SERVICE agencies
                 for (tspAgency in tsloAgency.childrenAgencies) {
                     for (tsAgency in tspAgency.childrenAgencies) {
                         val certificateRevocationListDocuments = tsAgency.providingDocuments
-                                .flatMap { documentParsingService.parseTspServiceDefinition(UrlResource(it.url), agency) }
+                                .flatMap {
+                                    try {
+                                        documentParsingService.parseTspServiceDefinition(UrlResource(it.url), agency)
+                                    } catch (e: Exception) {
+                                        LOGGER.warn("Unable to parse the document {}: {} - {}", it.url, e.javaClass, e.message)
+                                        listOf<Document>()
+                                    }
+                                }
                                 .distinctBy { it.url }
                                 .toList()
                         tsAgency.providingDocuments += certificateRevocationListDocuments
