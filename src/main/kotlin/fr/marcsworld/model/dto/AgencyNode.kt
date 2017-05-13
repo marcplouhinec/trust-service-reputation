@@ -15,7 +15,7 @@ class AgencyNode (
 
         val active: Boolean,
 
-        val rating: Int? = null,
+        val rating: Double? = null,
 
         val documentNodes: List<DocumentNode>,
 

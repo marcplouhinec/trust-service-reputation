@@ -21,8 +21,11 @@ var toolbarController = {
         $('button#collapse-all-but-top-agencies').click(function () {
             treeController.collapseAllButTopAgencies();
         });
-        $('button#open-help-dialog').click(function () {
-            helpController.openHelpDialog();
+        $('button#show-rating-information').click(function () {
+            helpController.openRatingDialog();
+        });
+        $('button#show-about-information').click(function () {
+            helpController.openAboutDialog();
         });
     }
 

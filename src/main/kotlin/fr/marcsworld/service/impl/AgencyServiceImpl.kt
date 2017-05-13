@@ -99,9 +99,9 @@ class AgencyServiceImpl(
             val childrenAgencyNodes = (childrenAgencies as? List)?.map(::buildAgencyNode) ?: listOf()
 
             // Compute a rating
-            var rating: Int? = null
+            var rating: Double?
             if (currentAgency.type == AgencyType.TRUST_SERVICE) {
-                rating = 0
+                rating = 0.0
 
                 // Active agency => one point
                 if (active) {
@@ -128,6 +128,14 @@ class AgencyServiceImpl(
                 // At least one CERTIFICATE_REVOCATION_LIST coming from a TS_STATUS_LIST_XML (easier to parse than a TSP_SERVICE_DEFINITION) => one point
                 if (crlAvailableAndValidDocumentNodes.any { it.document.referencedByDocumentType == DocumentType.TS_STATUS_LIST_XML }) {
                     rating += 1
+                }
+            } else {
+                rating = childrenAgencyNodes
+                        .map { it.rating ?: -1.0 }
+                        .filter { it > 0 }
+                        .average()
+                if (rating.isNaN()) {
+                    rating = null
                 }
             }
 

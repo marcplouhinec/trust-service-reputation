@@ -15,10 +15,23 @@ var helpController = {
     },
 
     /**
-     * Open the help dialog.
+     * Open the about dialog.
      */
-    openHelpDialog: function () {
+    openAboutDialog: function () {
         $('#help-panel').show();
+        $('#about-information').show();
+        $('#agency-rating-information').hide();
+        $('#help-panel-title').text('About');
+    },
+
+    /**
+     * Open the about dialog.
+     */
+    openRatingDialog: function () {
+        $('#help-panel').show();
+        $('#about-information').hide();
+        $('#agency-rating-information').show();
+        $('#help-panel-title').text('Rating information');
     }
 
 };

@@ -91,7 +91,7 @@ body {
     top: 107px;
     right: 16px;
 
-    width: 320px;
+    width: 420px;
 
     background-color: #eee;
     border: 1px solid #ccc;
@@ -112,6 +112,14 @@ body {
     flex: 1;
     padding-left: 8px;
     padding-right: 8px;
+}
+
+#help-panel-body ul {
+    padding-left: 20px;
+}
+
+#agency-rating-information {
+    display: none;
 }
 
 /*
