@@ -83,6 +83,37 @@ body {
     color: #FED136;
 }
 
+#help-panel {
+    display: flex;
+    flex-direction: column;
+
+    position: fixed;
+    top: 107px;
+    right: 16px;
+
+    width: 320px;
+
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+#help-panel-header {
+    display: flex;
+    padding: 8px;
+}
+
+#help-panel-header-label {
+    flex: 1;
+    font-weight: bold;
+}
+
+#help-panel-body {
+    flex: 1;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
 /*
  * General tree node
  */

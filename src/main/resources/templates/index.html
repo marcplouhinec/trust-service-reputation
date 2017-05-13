@@ -27,12 +27,37 @@
             <i class="fa fa-university" aria-hidden="true"></i>
             Collapse all but top agencies
         </button>
+        <button id="open-help-dialog">
+            <i class="fa fa-question-circle" aria-hidden="true"></i>
+            Help
+        </button>
     </div>
 </div>
 
 <div id="body-content">
     <!--/*@thymesVar id="rootAgencyNode" type="fr.marcsworld.model.dto.AgencyNode"*/-->
     <th:block th:include="fragment/agency :: agency (agencyNode=${rootAgencyNode})"/>
+
+    <div id="help-panel">
+        <div id="help-panel-header">
+            <div id="help-panel-header-label"><i class="fa fa-question-circle" aria-hidden="true"></i> Help</div>
+            <button id="help-panel-close-button"><i class="fa fa-times" aria-hidden="true"></i></button>
+        </div>
+        <div id="help-panel-body">
+            <p>
+                The goal of this application is to evaluate <a href="https://en.wikipedia.org/wiki/Trust_service_provider" target="_blank">Trust service providers</a>
+                provided by the European Commission via <a href="https://ec.europa.eu/digital-single-market/en/eu-trusted-lists-trust-service-providers" target="_blank">EU Trusted Lists</a>.
+            </p>
+            <p>
+                A trust service provider is a person or legal entity providing and preserving digital certificates to create and validate electronic signatures and to authenticate
+                their signatories as well as websites in general.
+            </p>
+            <p>
+                This application collects statistics by regularly downloading and validating documents provided by trust service providers.
+                Evaluation is automatically computed based on the presence of specific documents and their availability &amp; validity.
+            </p>
+        </div>
+    </div>
 </div>
 
 <div id="footer">
@@ -43,6 +68,7 @@
 <script th:src="@{/vendor/jquery-3.2.1.min.js}"></script>
 <script th:src="@{/script/treeController.js}"></script>
 <script th:src="@{/script/toolbarController.js}"></script>
+<script th:src="@{/script/helpController.js}"></script>
 <script th:src="@{/script/mainController.js}"></script>
 </body>
 </html>

@@ -21,6 +21,9 @@ var toolbarController = {
         $('button#collapse-all-but-top-agencies').click(function () {
             treeController.collapseAllButTopAgencies();
         });
+        $('button#open-help-dialog').click(function () {
+            helpController.openHelpDialog();
+        });
     }
 
 };
