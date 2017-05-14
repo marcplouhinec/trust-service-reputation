@@ -2,4 +2,3 @@
 adduser --system trustservicereputation
 chown -R trustservicereputation:nogroup /var/log/trustservicereputation
 chown -R trustservicereputation:nogroup /etc/trustservicereputation
-chown -R jenkins:jenkins /var/trustservicereputation
