@@ -21,6 +21,7 @@ Trust Service Reputation is open source and licensed under the terms of the MIT 
 * [MySQL](https://www.mysql.com/)
 * [JQuery](https://jquery.com/)
 * [Font Awesome](http://fontawesome.io/)
+* [Apache HTTP Server](https://httpd.apache.org/) as a reverse proxy
 
 ## Build and installation
 The scripts in this section target the [Debian](https://www.debian.org/) operating system.
