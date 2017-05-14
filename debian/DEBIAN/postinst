@@ -2,3 +2,4 @@
 adduser --system trustservicereputation
 chown -R trustservicereputation:nogroup /var/log/trustservicereputation
 chown -R trustservicereputation:nogroup /etc/trustservicereputation
+ln -s /etc/apache2/sites-available/trustservicereputation /etc/apache2/sites-enabled/trustservicereputation

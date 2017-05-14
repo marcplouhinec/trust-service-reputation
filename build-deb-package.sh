@@ -12,7 +12,6 @@ if [ -z "$1" ]
 fi
 BUILD_NUMBER=$1
 
-cd ..
 cp -r ./debian ./target/debian
 cd ./target
 
@@ -31,4 +30,3 @@ fakeroot chmod +x debian/DEBIAN/postinst
 
 # build the package
 fakeroot dpkg-deb --build debian .
-ln -s "./trustservicereputation_1.0.0.${BUILD_NUMBER}_all.deb" ./trustservicereputation_latest_all.deb
