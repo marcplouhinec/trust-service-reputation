@@ -1,0 +1,30 @@
+#!/bin/sh
+
+DAEMON="/usr/bin/java"
+DAEMON_ARGS="-Xmx300M -Dserver.port=9096 -cp /etc/trustservicereputation:/usr/local/lib/trustservicereputation/trustservicereputation.jar org.springframework.boot.loader.JarLauncher"
+PIDFILE="/var/run/trustservicereputation.pid"
+
+. /lib/lsb/init-functions
+
+case "$1" in
+    start)
+        log_action_begin_msg "Starting Trust Service Reputation"
+        /sbin/start-stop-daemon --start --chuid trustservicereputation:nogroup --background --pidfile "$PIDFILE" --make-pidfile --exec "$DAEMON" -- $DAEMON_ARGS
+        log_action_end_msg $?
+        ;;
+    stop)
+        log_action_begin_msg "Stopping Trust Service Reputation"
+        /sbin/start-stop-daemon --stop --pidfile "$PIDFILE" --exec "$DAEMON" -- $DAEMON_ARGS
+        log_action_end_msg $?
+        ;;
+    force-reload|restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: /etc/init.d/trustservicereputation {start|stop|restart|force-reload}"
+        exit 1
+        ;;
+esac
+
+exit 0

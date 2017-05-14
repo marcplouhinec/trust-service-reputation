@@ -1,0 +1,18 @@
+<VirtualHost *:80>
+
+    ServerAdmin admin@trustservicereputation.eu
+    ServerName trustservicereputation.eu
+    ServerAlias www.trustservicereputation.eu
+
+    ProxyPass         /  http://localhost:9096/ nocanon
+    ProxyPassReverse  /  http://localhost:9096/
+    ProxyRequests     Off
+    ProxyPreserveHost On
+    AllowEncodedSlashes NoDecode
+
+    <Proxy http://localhost:9096/*>
+      Order deny,allow
+      Allow from all
+    </Proxy>
+
+</VirtualHost>
