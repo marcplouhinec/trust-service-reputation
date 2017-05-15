@@ -20,14 +20,14 @@ import javax.persistence.*
                         "    stats.AVG_VALIDITY, " +
                         "    mostRecentResult.SIZE_IN_BYTES, " +
                         "    mostRecentResult.DOWNLOAD_DURATION_IN_MILLIS " +
-                        "FROM DOCUMENT_CHECKING_RESULT mostRecentResult " +
+                        "FROM document_checking_result mostRecentResult " +
                         "INNER JOIN ( " +
                         "    SELECT " +
                         "        result.DOCUMENT_URL AS documentUrl, " +
                         "        MAX(result.CHECKING_DATE) AS maxCheckingDate, " +
                         "        AVG(result.IS_AVAILABLE * 100) AS AVG_AVAILABILITY, " +
                         "        AVG(result.IS_VALID * 100) AS AVG_VALIDITY " +
-                        "    FROM DOCUMENT_CHECKING_RESULT result " +
+                        "    FROM document_checking_result result " +
                         "    GROUP BY result.DOCUMENT_URL " +
                         ") stats ON mostRecentResult.DOCUMENT_URL = stats.documentUrl AND mostRecentResult.CHECKING_DATE = stats.maxCheckingDate",
                 resultClass = DocumentStatistics::class)

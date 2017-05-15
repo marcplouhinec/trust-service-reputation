@@ -55,7 +55,7 @@ Create the Debian package:
     chmod +x build-deb-package.sh
     ./build-deb-package.sh $(git rev-parse --short HEAD)
     
-The package is named: "./trustservicereputation_1.0.0.GIT_HASH_all.deb"
+The package is named: "./target/trustservicereputation_1.0.0.GIT_HASH_all.deb"
 
 ### Installation
 Copy the .deb package on your server and stop the existing version if applicable:
@@ -64,7 +64,7 @@ Copy the .deb package on your server and stop the existing version if applicable
     
 Install the package:
 
-    sudo dpkg -i ./trustservicereputation_latest_all.deb
+    sudo dpkg -i ./trustservicereputation_1.0.0.GIT_HASH_all.deb
     sudo apt-get -f install
     
 Setup MySQL, create a database and user as explained in the previous section.
@@ -74,7 +74,7 @@ Adapt the configuration files:
     cd /etc/trustservicereputation
     vi application.properties
     vi logback.xml
-    cd /etc/apache2/sites-available/trustservicereputation
+    cd /etc/apache2/sites-available
     vi trustservicereputation
 
 Start the service:
