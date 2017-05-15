@@ -52,7 +52,8 @@ Configure the datasource, build and test it:
     
 Create the Debian package:
 
-    ./build-deb-package $(git rev-parse --short HEAD)
+    chmod +x build-deb-package.sh
+    ./build-deb-package.sh $(git rev-parse --short HEAD)
     
 The package is named: "./trustservicereputation_1.0.0.GIT_HASH_all.deb"
 
