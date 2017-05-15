@@ -27,7 +27,7 @@ Trust Service Reputation is open source and licensed under the terms of the MIT 
 The scripts in this section target the [Debian](https://www.debian.org/) operating system.
 
 ### Database
-Setup MySQL (version > 5.7.x):
+Setup MySQL (version >= 5.5.x):
 
     sudo apt-get install mysql-server mysql-client
     
@@ -35,8 +35,8 @@ Create a database and a user:
 
     mysql -u root -p
     CREATE DATABASE trust_service_reputation;
-    CREATE USER 'trust_service_reputation'@'localhost' IDENTIFIED BY 'some_pass';
-    GRANT ALL ON trust_service_reputation.* TO 'trust_service_reputation'@'localhost';
+    CREATE USER 'tsreputation'@'localhost' IDENTIFIED BY 'password';
+    GRANT ALL ON trust_service_reputation.* TO 'tsreputation'@'localhost';
     QUIT;
     
 ### Download and build the application
@@ -45,8 +45,9 @@ Clone the repository from GitHub:
     git clone https://github.com/marcplouhinec/trust-service-reputation.git
     cd trust-service-reputation
     
-Build and test it:
+Configure the datasource, build and test it:
 
+    vi src/main/resources/application.properties
     mvn clean install
     
 Create the Debian package:
