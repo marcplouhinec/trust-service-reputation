@@ -75,6 +75,7 @@ Adapt the configuration files:
     vi application.properties
     vi logback.xml
     cd /etc/apache2/sites-available
+    ln -s /etc/apache2/sites-available/trustservicereputation /etc/apache2/sites-enabled/trustservicereputation
     vi trustservicereputation
 
 Start the service:
