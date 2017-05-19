@@ -5,6 +5,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.impl.client.HttpClients
 import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
+import java.io.IOException
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -40,6 +41,9 @@ object ResourceDownloader {
                         .disableAutomaticRetries()
                         .build()
                 httpClient.execute(HttpGet(resourceUrl)).use {
+                    if (it.statusLine.statusCode != 200) {
+                        throw IOException("Resource '$resourceUrl' unavailable: the status code is ${it.statusLine.statusCode} instead of 200.")
+                    }
                     it.entity.content.use {
                         it.readBytes()
                     }
