@@ -28,7 +28,8 @@
             <i class="fa fa-university" aria-hidden="true"></i>
             Collapse all but top agencies
         </button>
-        <button id="show-rating-information">
+        <!--/*@thymesVar id="includeRating" type="java.lang.Boolean"*/-->
+        <button id="show-rating-information" th:if="${includeRating}">
             <i class="fa fa-question-circle" aria-hidden="true"></i>
             Rating
         </button>

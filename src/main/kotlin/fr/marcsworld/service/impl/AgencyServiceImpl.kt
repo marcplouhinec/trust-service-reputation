@@ -46,7 +46,7 @@ class AgencyServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAgencyTree(): AgencyNode {
+    override fun findAgencyTree(includeRating: Boolean): AgencyNode {
         // Find all the agencies
         val agencies = agencyRepository.findAll()
 
@@ -99,43 +99,45 @@ class AgencyServiceImpl(
             val childrenAgencyNodes = (childrenAgencies as? List)?.map(::buildAgencyNode) ?: listOf()
 
             // Compute a rating
-            var rating: Double?
-            if (currentAgency.type == AgencyType.TRUST_SERVICE) {
-                rating = 0.0
+            var rating: Double? = null
+            if (includeRating) {
+                if (currentAgency.type == AgencyType.TRUST_SERVICE) {
+                    rating = 0.0
 
-                // Active agency => one point
-                if (active) {
-                    rating += 1
-                }
+                    // Active agency => one point
+                    if (active) {
+                        rating += 1
+                    }
 
-                // At least one available and valid document => one point
-                val availableAndValidDocumentNodes = documentNodes.filter { it.availabilityPercentage > 99 && it.validityPercentage > 99 }
-                if (availableAndValidDocumentNodes.isNotEmpty()) {
-                    rating += 1
-                }
+                    // At least one available and valid document => one point
+                    val availableAndValidDocumentNodes = documentNodes.filter { it.availabilityPercentage > 99 && it.validityPercentage > 99 }
+                    if (availableAndValidDocumentNodes.isNotEmpty()) {
+                        rating += 1
+                    }
 
-                // All documents are available and valid => one point
-                if (documentNodes.isNotEmpty() && documentNodes.size == availableAndValidDocumentNodes.size) {
-                    rating += 1
-                }
+                    // All documents are available and valid => one point
+                    if (documentNodes.isNotEmpty() && documentNodes.size == availableAndValidDocumentNodes.size) {
+                        rating += 1
+                    }
 
-                // At least one CERTIFICATE_REVOCATION_LIST => one point
-                val crlAvailableAndValidDocumentNodes = availableAndValidDocumentNodes.filter { it.document.type == DocumentType.CERTIFICATE_REVOCATION_LIST }
-                if (crlAvailableAndValidDocumentNodes.isNotEmpty()) {
-                    rating += 1
-                }
+                    // At least one CERTIFICATE_REVOCATION_LIST => one point
+                    val crlAvailableAndValidDocumentNodes = availableAndValidDocumentNodes.filter { it.document.type == DocumentType.CERTIFICATE_REVOCATION_LIST }
+                    if (crlAvailableAndValidDocumentNodes.isNotEmpty()) {
+                        rating += 1
+                    }
 
-                // At least one CERTIFICATE_REVOCATION_LIST coming from a TS_STATUS_LIST_XML (easier to parse than a TSP_SERVICE_DEFINITION) => one point
-                if (crlAvailableAndValidDocumentNodes.any { it.document.referencedByDocumentType == DocumentType.TS_STATUS_LIST_XML }) {
-                    rating += 1
-                }
-            } else {
-                rating = childrenAgencyNodes
-                        .map { it.rating ?: -1.0 }
-                        .filter { it > 0 }
-                        .average()
-                if (rating.isNaN()) {
-                    rating = null
+                    // At least one CERTIFICATE_REVOCATION_LIST coming from a TS_STATUS_LIST_XML (easier to parse than a TSP_SERVICE_DEFINITION) => one point
+                    if (crlAvailableAndValidDocumentNodes.any { it.document.referencedByDocumentType == DocumentType.TS_STATUS_LIST_XML }) {
+                        rating += 1
+                    }
+                } else {
+                    rating = childrenAgencyNodes
+                            .map { it.rating ?: -1.0 }
+                            .filter { it > 0 }
+                            .average()
+                    if (rating.isNaN()) {
+                        rating = null
+                    }
                 }
             }
 

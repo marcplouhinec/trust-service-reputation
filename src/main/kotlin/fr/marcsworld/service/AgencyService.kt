@@ -28,9 +28,10 @@ interface AgencyService {
     /**
      * Find [Agency]s with related information and build a tree.
      *
+     * @param includeRating If true, fill the [AgencyNode.rating] parameter.
      * @return Tree root [AgencyNode].
      */
-    fun findAgencyTree(): AgencyNode
+    fun findAgencyTree(includeRating: Boolean): AgencyNode
 
     /**
      * Update in the database the given [Agency], then create or update the children agencies and documents.
